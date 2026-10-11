@@ -41,7 +41,10 @@ test("the API refuses a forbidden call with 403", async ({ page }) => {
 });
 
 test("Arabic mirrors the layout and keeps Latin text left-to-right", async ({ page }) => {
-  await loginAs(page, "analyste", "ar");
+  // After login the saved language (French) wins; switch the way a user would.
+  await loginAs(page, "analyste");
+  await page.getByRole("button", { name: "العربية" }).click();
+  await expect(page).toHaveURL(/\/ar(\/|$)/);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
 
@@ -52,6 +55,21 @@ test("Arabic mirrors the layout and keeps Latin text left-to-right", async ({ pa
   // dir="auto" resolves to ltr for a Latin email inside the RTL page.
   const email = page.getByTestId("user-email").locator("bdi");
   expect(await email.evaluate((el) => el.matches(":dir(ltr)"))).toBe(true);
+
+  await page.getByRole("button", { name: "Français" }).click();
+  await expect(page).toHaveURL(/\/fr(\/|$)/);
+});
+
+test("the saved language opens after the next login", async ({ page }) => {
+  await loginAs(page, "partenaire");
+  await page.getByRole("button", { name: "العربية" }).click();
+  await expect(page).toHaveURL(/\/ar(\/|$)/);
+  await page.context().clearCookies();
+  await loginAs(page, "partenaire", "fr");
+  await expect(page).toHaveURL(/\/ar(\/|$)/);
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await page.getByRole("button", { name: "Français" }).click();
+  await expect(page).toHaveURL(/\/fr(\/|$)/);
 });
 
 test("French layout is left-to-right with navigation on the left", async ({ page }) => {

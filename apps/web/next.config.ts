@@ -7,6 +7,8 @@ const apiOrigin = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@pnsi/api-client"],
+  // Project guidance for agents lives in the root CLAUDE.md.
+  agentRules: false,
   turbopack: {
     rules: {
       "*.css": {
