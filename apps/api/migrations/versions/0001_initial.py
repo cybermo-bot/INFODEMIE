@@ -46,7 +46,6 @@ FOR EACH STATEMENT EXECUTE FUNCTION audit_events_append_only();
 
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     op.create_table(
         "audit_events",
         sa.Column("id", sa.BigInteger(), sa.Identity(always=True), nullable=False),
@@ -1990,7 +1989,7 @@ def upgrade() -> None:
         sa.Column("institution_id", sa.Uuid(), nullable=False),
         sa.Column("action_id", sa.Uuid(), nullable=False),
         sa.Column(
-            "window",
+            "horizon",
             sa.Enum(
                 "48h",
                 "7d",
@@ -2041,11 +2040,11 @@ def upgrade() -> None:
         ),
         sa.Column("version", sa.Integer(), server_default="1", nullable=False),
         sa.CheckConstraint(
-            "status IN ('scheduled', 'done', 'missed', 'cancelled')",
-            name=op.f("ck_follow_ups_followupstatus"),
+            "horizon IN ('48h', '7d', '30d')", name=op.f("ck_follow_ups_followupwindow")
         ),
         sa.CheckConstraint(
-            "window IN ('48h', '7d', '30d')", name=op.f("ck_follow_ups_followupwindow")
+            "status IN ('scheduled', 'done', 'missed', 'cancelled')",
+            name=op.f("ck_follow_ups_followupstatus"),
         ),
         sa.ForeignKeyConstraint(
             ["action_id"],
@@ -2066,7 +2065,7 @@ def upgrade() -> None:
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_follow_ups")),
-        sa.UniqueConstraint("action_id", "window", name=op.f("uq_follow_ups_action_id_window")),
+        sa.UniqueConstraint("action_id", "horizon", name=op.f("uq_follow_ups_action_id_horizon")),
     )
     op.create_index(op.f("ix_follow_ups_action_id"), "follow_ups", ["action_id"], unique=False)
     op.create_index(op.f("ix_follow_ups_due_at"), "follow_ups", ["due_at"], unique=False)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, FastAPI
 
-from pnsi.api.v1 import health
+from pnsi.api.v1 import audit, auth, health, users
 from pnsi.errors import install_error_handlers
 from pnsi.log import configure_logging, get_logger
 from pnsi.settings import Settings, get_settings
@@ -31,6 +31,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     v1 = APIRouter(prefix=API_PREFIX)
     v1.include_router(health.router)
+    v1.include_router(auth.router)
+    v1.include_router(users.router)
+    v1.include_router(audit.router)
     app.include_router(v1)
 
     get_logger(__name__).info(

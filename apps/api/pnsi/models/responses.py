@@ -3,7 +3,7 @@
 Structural guarantees for spec §35:
 - an approval and an action reference an exact variant revision through a
   composite foreign key (invariants 2 and 4);
-- one follow-up per action and window (invariant 8).
+- one follow-up per action and horizon (48h, 7d, 30d) (invariant 8).
 The workflow rules themselves live in the domain services (Stage 5).
 """
 
@@ -173,13 +173,13 @@ class Action(UUIDPk, Mutable, Scenario, Base):
 
 class FollowUp(UUIDPk, Mutable, Scenario, Base):
     __tablename__ = "follow_ups"
-    __table_args__ = (UniqueConstraint("action_id", "window"),)
+    __table_args__ = (UniqueConstraint("action_id", "horizon"),)
 
     institution_id: Mapped[uuid.UUID] = institution_fk()
     action_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("actions.id", ondelete="CASCADE"), index=True
     )
-    window: Mapped[FollowUpWindow] = mapped_column(str_enum(FollowUpWindow))
+    horizon: Mapped[FollowUpWindow] = mapped_column(str_enum(FollowUpWindow))
     due_at: Mapped[datetime] = mapped_column(index=True)
     status: Mapped[FollowUpStatus] = mapped_column(
         str_enum(FollowUpStatus),

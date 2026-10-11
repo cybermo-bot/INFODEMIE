@@ -106,13 +106,13 @@ def test_approvals_and_actions_bind_exact_variant_revision():
         assert fks[0].referred_table.name == "response_variant_revisions"
 
 
-def test_follow_ups_unique_per_action_and_window():
+def test_follow_ups_unique_per_action_and_horizon():
     uniques = [
         tuple(c.name for c in con.columns)
         for con in TABLES["follow_ups"].constraints
         if con.__class__.__name__ == "UniqueConstraint"
     ]
-    assert ("action_id", "window") in uniques
+    assert ("action_id", "horizon") in uniques
 
 
 def test_content_items_idempotent_per_source():
@@ -143,3 +143,11 @@ def test_passages_have_vector_and_full_text_columns():
     cols = TABLES["passages"].c
     assert cols["embedding"].type.dim == 1024
     assert cols["tsv"].computed is not None
+
+
+def test_no_column_uses_a_postgres_reserved_word():
+    from sqlalchemy.dialects.postgresql.base import RESERVED_WORDS
+
+    for name, table in TABLES.items():
+        for col in table.c:
+            assert col.name not in RESERVED_WORDS, f"{name}.{col.name} is reserved in PostgreSQL"
