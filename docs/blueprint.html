@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PNSI Product Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a long single-column working document (68ch prose) with full-bleed "screen" plates for product mockups and wide tables. */
+:root{
+  --ink:#0f2340; --ink-2:#3a4b63; --muted:#66758a;
+  --bg:#f4f6f7; --paper:#ffffff; --line:#d9e0e6; --line-2:#e8edf1;
+  --teal:#0b7472; --teal-soft:#e2f1f0;
+  --amber:#a66d06; --amber-soft:#fbf0d9;
+  --red:#a8322b; --red-soft:#f8e3e1;
+  --green:#2d7a3e; --green-soft:#e2f2e5;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-ar:"IBM Plex Sans Arabic","Noto Sans Arabic",Tahoma,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:72px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#e4ebf2; --ink-2:#b9c6d4; --muted:#8a9bb0;
+  --bg:#0c1520; --paper:#121e2c; --line:#24364a; --line-2:#1a2a3b;
+  --teal:#47bdb8; --teal-soft:#123433;
+  --amber:#e0a93e; --amber-soft:#3a2c10;
+  --red:#ec7a70; --red-soft:#3d1c1a;
+  --green:#6cc27f; --green-soft:#15301c;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#e4ebf2; --ink-2:#b9c6d4; --muted:#8a9bb0;
+  --bg:#0c1520; --paper:#121e2c; --line:#24364a; --line-2:#1a2a3b;
+  --teal:#47bdb8; --teal-soft:#123433;
+  --amber:#e0a93e; --amber-soft:#3a2c10;
+  --red:#ec7a70; --red-soft:#3d1c1a;
+  --green:#6cc27f; --green-soft:#15301c;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:var(--s6) var(--s8)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0;color:var(--ink)}
+h1{font-size:clamp(34px,5vw,54px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(26px,3.2vw,34px);font-weight:700}
+h3{font-size:21px;font-weight:600;margin-top:var(--s5)}
+h4{font-size:17px;font-weight:600}
+p{margin:0}
+.stack>*+*{margin-top:var(--s4)}
+a{color:var(--teal);text-underline-offset:2px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.lede{font-size:19px;color:var(--ink-2);max-width:62ch}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+ul.clean{list-style:none;padding:0;margin:0}
+ul.ticks{padding-left:1.1em;margin:0}
+ul.ticks li+li{margin-top:6px}
+ar,.ar{font-family:var(--f-ar);direction:rtl;unicode-bidi:isolate}
+
+/* header */
+header.top{display:grid;gap:var(--s5);padding-bottom:var(--s6);border-bottom:2px solid var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);font-size:14px;color:var(--muted)}
+.meta b{color:var(--ink-2);font-weight:500}
+.status{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;padding:4px 10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink-2)}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block}
+
+/* toc */
+nav.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 24px;margin-top:var(--s5);font-size:14.5px}
+nav.toc a{color:var(--ink-2);text-decoration:none;display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--line-2)}
+nav.toc a span{font-family:var(--f-mono);color:var(--teal);min-width:22px}
+nav.toc a:hover{color:var(--teal)}
+
+section.sec{padding-top:var(--s8)}
+.sec-head{display:grid;gap:var(--s2);margin-bottom:var(--s5)}
+.sec-num{font-family:var(--f-mono);font-size:13px;color:var(--teal)}
+
+/* callouts */
+.callout{border:1px solid var(--line);background:var(--paper);padding:var(--s4) var(--s5);border-radius:4px}
+.callout.warn{border-color:color-mix(in srgb,var(--red) 45%,var(--line));background:var(--red-soft)}
+.callout.note{border-color:color-mix(in srgb,var(--teal) 40%,var(--line));background:var(--teal-soft)}
+.callout h4{margin-bottom:6px}
+
+/* grids */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s5)}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--s4)}
+.g2>*,.g3>*{min-width:0}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line-2)}
+th{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:color-mix(in srgb,var(--paper) 85%,var(--line))}
+tr:last-child td{border-bottom:0}
+td.k{font-weight:600;white-space:nowrap}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:2px 7px;border-radius:3px;white-space:nowrap;border:1px solid transparent}
+.t-keep{background:var(--green-soft);color:var(--green)}
+.t-rebuild{background:var(--amber-soft);color:var(--amber)}
+.t-drop{background:var(--red-soft);color:var(--red)}
+.t-teal{background:var(--teal-soft);color:var(--teal)}
+.t-line{border-color:var(--line);color:var(--muted)}
+
+/* finding cards */
+.finding{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:var(--s5);display:grid;gap:var(--s3);align-content:start}
+.finding .so{border-top:1px solid var(--line-2);padding-top:var(--s3);font-size:14.5px;color:var(--ink-2)}
+.finding .so b{color:var(--teal);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.stat{border-left:3px solid var(--teal);padding:2px 0 2px 10px}
+.stat b{display:block;font-family:var(--f-display);font-size:24px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--muted)}
+.stat.dim{border-left-color:var(--line)}
+
+/* routes diagram */
+.routes{display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:var(--s5);align-items:center}
+.routes .in{background:var(--ink);color:var(--paper);padding:var(--s5);border-radius:4px}
+.routes .in h4{color:var(--paper)}
+.routes .in p{font-size:14px;opacity:.85;margin-top:6px}
+.route-list{display:grid;gap:8px}
+.route{display:grid;grid-template-columns:30px 1fr 1.25fr;gap:var(--s3);align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:10px 14px}
+.route .n{font-family:var(--f-mono);font-size:13px;color:var(--teal)}
+.route b{font-weight:600}
+.route p{font-size:14px;color:var(--ink-2)}
+@media (max-width:720px){.routes{grid-template-columns:1fr}.route{grid-template-columns:24px 1fr}.route p{grid-column:2}}
+
+/* cycle */
+.cycle{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.cycle div{flex:1 1 140px;background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--teal);padding:10px 12px;border-radius:3px;font-size:14px}
+.cycle div b{display:block;font-family:var(--f-display);font-size:16px}
+
+/* ===== product screen plates (fixed product palette, independent of page theme) ===== */
+.plate{margin-top:var(--s5)}
+.plate-cap{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:var(--s3)}
+.plate-cap h3{margin:0}
+.plate-scroll{overflow-x:auto;padding-bottom:6px}
+.screen{
+  --m-ink:#13253f;--m-ink2:#4a5a70;--m-mute:#7b8899;--m-bg:#f3f5f7;--m-paper:#fff;--m-line:#dfe5ea;--m-line2:#edf1f4;
+  --m-navy:#10233f;--m-teal:#0b7472;--m-teal-s:#e1f0ef;--m-amber:#b07407;--m-amber-s:#fcf1db;--m-red:#b03a2e;--m-red-s:#f9e4e1;--m-green:#2f7d40;--m-green-s:#e3f2e6;
+  min-width:980px;background:var(--m-bg);color:var(--m-ink);border:1px solid #c9d2db;border-radius:8px;overflow:hidden;font-family:var(--f-body);font-size:13px;line-height:1.45;box-shadow:0 1px 0 rgba(16,35,63,.04),0 12px 32px -18px rgba(16,35,63,.35);color-scheme:light}
+.screen *{color:inherit}
+.bar{display:flex;align-items:center;gap:8px;background:#e7ebef;padding:7px 12px;border-bottom:1px solid #d3dae1}
+.bar i{width:10px;height:10px;border-radius:50%;background:#c4ccd5;display:block}
+.bar .url{margin-left:10px;flex:1;background:#fff;border:1px solid #d3dae1;border-radius:4px;font-family:var(--f-mono);font-size:11.5px;padding:3px 10px;color:#6b7888}
+.demo-ribbon{background:#fff4d6;color:#7a5200;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;padding:4px 14px;border-bottom:1px solid #f0dca8;text-transform:uppercase}
+.app{display:grid;grid-template-columns:196px 1fr;min-height:520px}
+.side{background:var(--m-navy);color:#d9e2ec;padding:14px 0;display:flex;flex-direction:column;gap:2px}
+.side .brand{padding:0 16px 14px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px}
+.side .brand b{font-family:var(--f-display);font-size:19px;color:#fff;letter-spacing:.02em;display:block}
+.side .brand span{font-size:11px;color:#9fb0c3}
+.side a{display:flex;justify-content:space-between;padding:7px 16px;color:#c7d3df;text-decoration:none;font-size:12.5px;border-left:3px solid transparent}
+.side a.on{background:rgba(255,255,255,.07);color:#fff;border-left-color:#4fc0ba}
+.side a em{font-style:normal;font-family:var(--f-mono);font-size:10.5px;background:rgba(255,255,255,.12);padding:0 6px;border-radius:8px}
+.side .sp{flex:1}
+.side .who{padding:10px 16px;font-size:11px;color:#9fb0c3;border-top:1px solid rgba(255,255,255,.1)}
+.main{padding:16px 18px;display:grid;gap:14px;align-content:start;min-width:0}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.topline h5{font-family:var(--f-display);font-size:20px;margin:0;font-weight:600;color:var(--m-ink)}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--m-line);background:var(--m-paper);border-radius:4px;padding:3px 9px;font-size:11.5px;color:var(--m-ink2);white-space:nowrap}
+.chip b{color:var(--m-ink);font-weight:500}
+.lang{display:flex;border:1px solid var(--m-line);border-radius:4px;overflow:hidden;background:#fff}
+.lang span{padding:3px 8px;font-size:11px;font-family:var(--f-mono);color:var(--m-mute);border-right:1px solid var(--m-line)}
+.lang span:last-child{border-right:0}
+.lang span.on{background:var(--m-navy);color:#fff}
+.card{background:var(--m-paper);border:1px solid var(--m-line);border-radius:6px;padding:12px 14px;min-width:0}
+.card h6{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--m-mute);margin:0 0 8px;font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi b{display:block;font-family:var(--f-display);font-size:24px;font-variant-numeric:tabular-nums;color:var(--m-ink)}
+.kpi span{font-size:11.5px;color:var(--m-mute)}
+.kpi small{display:block;font-size:11px;margin-top:2px}
+.up{color:var(--m-red)}.down{color:var(--m-green)}
+.pill{display:inline-block;font-size:10.5px;font-family:var(--f-mono);padding:1px 7px;border-radius:10px;white-space:nowrap;font-weight:500}
+.p-red{background:var(--m-red-s);color:var(--m-red)}
+.p-amber{background:var(--m-amber-s);color:var(--m-amber)}
+.p-green{background:var(--m-green-s);color:var(--m-green)}
+.p-teal{background:var(--m-teal-s);color:var(--m-teal)}
+.p-grey{background:#eef1f4;color:#5b6879}
+.row2{display:grid;grid-template-columns:1.55fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px}
+.mt{width:100%;border-collapse:collapse;font-size:12px}
+.mt th{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--m-mute);font-weight:500;text-align:left;padding:5px 8px;border-bottom:1px solid var(--m-line);background:transparent}
+.mt td{padding:7px 8px;border-bottom:1px solid var(--m-line2);vertical-align:top}
+.mt tr:last-child td{border-bottom:0}
+.mt.q td:nth-child(2){min-width:190px}.mt.q td:nth-child(3),.mt.q td:nth-child(4){white-space:nowrap}
+.row2.wide-left{grid-template-columns:1.9fr 1fr}
+.btn{display:inline-block;border-radius:4px;padding:4px 10px;font-size:11.5px;font-weight:500;border:1px solid var(--m-line);background:#fff;color:var(--m-ink)}
+.btn.pri{background:var(--m-teal);border-color:var(--m-teal);color:#fff}
+.btn.ghost{background:transparent}
+.temp{display:grid;grid-template-columns:120px 1fr 34px 54px;gap:8px;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--m-line2)}
+.temp:last-child{border-bottom:0}
+.temp .track{height:10px;background:#edf1f4;border-radius:5px;position:relative;overflow:hidden}
+.temp .track i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.temp b{font-family:var(--f-mono);font-size:12px;text-align:right}
+.srch{display:grid;grid-template-columns:1fr auto;gap:6px;font-size:11.5px;padding:5px 0;border-bottom:1px solid var(--m-line2);align-items:center}
+.srch:last-child{border-bottom:0}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d-g{background:var(--m-green)}.d-a{background:var(--m-amber)}.d-r{background:var(--m-red)}.d-x{background:#b7c1cc}
+.carto{display:grid;grid-template-columns:repeat(5,30px);grid-auto-rows:26px;gap:3px;justify-content:center}
+.carto div{border-radius:3px;font-family:var(--f-mono);font-size:8.5px;display:flex;align-items:center;justify-content:center;color:#13253f}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--m-mute);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.case-head{background:var(--m-paper);border:1px solid var(--m-line);border-radius:6px;padding:12px 14px;display:grid;gap:8px}
+.case-head .t{font-family:var(--f-display);font-size:19px;font-weight:600}
+.case-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:11.5px;color:var(--m-ink2)}
+.case-meta b{color:var(--m-ink);font-weight:500}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--m-line);font-size:12px;flex-wrap:wrap}
+.tabs span{padding:6px 10px;color:var(--m-mute);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs span.on{color:var(--m-ink);border-bottom-color:var(--m-teal);font-weight:500}
+.mention{border:1px solid var(--m-line2);border-radius:5px;padding:9px 10px;display:grid;gap:5px;background:#fbfcfd}
+.mention .orig{font-size:13px}
+.mention .tr{font-size:11.5px;color:var(--m-ink2);border-left:2px solid var(--m-line);padding-left:8px}
+.mention .mm{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:10.5px;color:var(--m-mute)}
+.ev{border-left:3px solid var(--m-red);padding:6px 10px;background:#fff;display:grid;gap:3px;font-size:12px}
+.ev.ctx{border-left-color:#9aa7b5}
+.ev small{color:var(--m-mute);font-size:10.5px}
+.tl{display:grid;gap:0;font-size:11.5px}
+.tl div{display:grid;grid-template-columns:78px 12px 1fr;gap:8px;align-items:start;padding:3px 0}
+.tl div i{width:9px;height:9px;border-radius:50%;background:var(--m-teal);margin-top:4px}
+.tl div.fut i{background:#fff;border:2px solid #b7c1cc}
+.tl div span:first-child{font-family:var(--f-mono);color:var(--m-mute);font-size:10.5px}
+.variant{display:grid;gap:10px}
+.vtabs{display:flex;gap:6px;flex-wrap:wrap}
+.vtabs span{border:1px solid var(--m-line);border-radius:4px;padding:3px 9px;font-size:11.5px;background:#fff;display:inline-flex;gap:6px;align-items:center}
+.vtabs span.on{border-color:var(--m-teal);box-shadow:inset 0 -2px 0 var(--m-teal)}
+.editor{border:1px solid var(--m-line);border-radius:5px;background:#fff}
+.editor .tb{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--m-line2);font-size:11px;color:var(--m-mute)}
+.editor .body{padding:12px 14px;font-family:var(--f-ar);direction:rtl;text-align:right;font-size:15px;line-height:1.85}
+.editor .body sup{font-family:var(--f-mono);font-size:9.5px;color:var(--m-teal);direction:ltr;unicode-bidi:isolate}
+.chain{display:grid;gap:0}
+.chain div{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--m-line2);font-size:12px}
+.chain div:last-child{border-bottom:0}
+.chain .st{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600}
+.st.ok{background:var(--m-green)}.st.cur{background:var(--m-amber)}.st.no{background:#fff;border:2px solid #c4ccd5}
+.minis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cab{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.point{display:grid;grid-template-columns:4px 1fr;gap:12px;background:#fff;border:1px solid var(--m-line);border-radius:6px;padding:12px 14px 12px 0;overflow:hidden}
+.point>i{display:block;border-radius:0 3px 3px 0}
+.point h6{font-family:var(--f-display);font-size:15px;text-transform:none;letter-spacing:0;color:var(--m-ink);margin:0 0 4px;font-weight:600}
+.point p{font-size:12px;color:var(--m-ink2)}
+.point .pm{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.phone-wrap{display:flex;gap:var(--s6);flex-wrap:wrap;align-items:flex-start}
+.phone{width:300px;flex:0 0 300px;border:10px solid #18273a;border-radius:30px;background:#f3f5f7;overflow:hidden;color:#13253f;font-size:12.5px;box-shadow:0 18px 40px -22px rgba(16,35,63,.6);color-scheme:light}
+.phone .ph-top{background:#10233f;color:#fff;padding:12px 14px}
+.phone .ph-top b{font-family:var(--f-display);font-size:16px;display:block}
+.phone .ph-top span{font-size:11px;color:#a9b8c8}
+.phone form{padding:12px 14px;display:grid;gap:10px}
+.phone label{display:grid;gap:4px;font-size:11px;color:#4a5a70;font-weight:500}
+.phone .fld{background:#fff;border:1px solid #dfe5ea;border-radius:5px;padding:7px 9px;font-size:12.5px;color:#13253f}
+.phone .fld.ta{min-height:64px}
+.phone .chips{display:flex;flex-wrap:wrap;gap:5px}
+.phone .chips span{border:1px solid #dfe5ea;background:#fff;border-radius:12px;padding:2px 9px;font-size:11px}
+.phone .chips span.on{background:#0b7472;border-color:#0b7472;color:#fff}
+.phone .send{background:#0b7472;color:#fff;text-align:center;border-radius:6px;padding:9px;font-weight:600}
+.phone .priv{font-size:10.5px;color:#7b8899;text-align:center}
+
+/* arch diagram */
+.arch{display:grid;gap:10px}
+.arch-row{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:stretch}
+.arch-row>b{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:10px}
+.arch-boxes{display:flex;flex-wrap:wrap;gap:8px}
+.ab{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 12px;font-size:14px;flex:1 1 150px}
+.ab small{display:block;color:var(--muted);font-size:12.5px}
+.ab.hl{border-color:var(--teal);box-shadow:inset 3px 0 0 var(--teal)}
+.arrow-down{text-align:center;color:var(--muted);font-family:var(--f-mono);font-size:12px}
+@media (max-width:640px){.arch-row{grid-template-columns:1fr}.arch-row>b{padding-top:0}}
+
+/* timeline plan */
+.weeks{display:grid;gap:8px}
+.wk{display:grid;grid-template-columns:90px 1fr;gap:var(--s4);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:12px 16px}
+.wk b{font-family:var(--f-mono);font-size:13px;color:var(--teal)}
+.wk h4{margin-bottom:4px}
+.wk p{font-size:14.5px;color:var(--ink-2)}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.phase{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:14px;display:grid;gap:6px;align-content:start}
+.phase .when{font-family:var(--f-mono);font-size:12px;color:var(--teal)}
+.phase p{font-size:14px;color:var(--ink-2)}
+.script{counter-reset:s;display:grid;gap:8px;padding:0;margin:0;list-style:none}
+.script li{display:grid;grid-template-columns:64px 1fr;gap:var(--s4);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:12px 16px}
+.script li b.t{font-family:var(--f-mono);color:var(--teal);font-size:13px}
+.script li p{font-size:14.5px;color:var(--ink-2)}
+.script li h4{margin-bottom:3px}
+footer{margin-top:var(--s8);padding-top:var(--s5);border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+.refs{display:grid;gap:6px;font-size:14px}
+.refs li{color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="stack">
+    <span class="eyebrow">ONMNE · Ministère de la Santé · Redevelopment of Infodémie V3</span>
+    <h1>PNSI product blueprint</h1>
+    <p class="lede">What the new platform has to do, what it will look like, and how we get from V3 to something we can put in front of the minister. Built from the concept note, the ministry deck, Nour's specification, a full read of the V3 code, and new research.</p>
+  </div>
+  <div class="meta">
+    <span><b>Version</b> 2.0</span>
+    <span><b>Date</b> 11 October 2026</span>
+    <span><b>Audience</b> project team</span>
+    <span class="status"><i></i>Decisions locked · mockups use illustrative data</span>
+  </div>
+  <nav class="toc" aria-label="Contents">
+    <a href="#brief"><span>01</span>The new brief</a>
+    <a href="#decisions"><span>02</span>Decisions taken</a>
+    <a href="#v3"><span>03</span>Where V3 stands</a>
+    <a href="#research"><span>04</span>What the research changed</a>
+    <a href="#sourcing"><span>05</span>Source strategy</a>
+    <a href="#concept"><span>06</span>Product concept</a>
+    <a href="#verify"><span>07</span>Verification engine</a>
+    <a href="#users"><span>08</span>Who uses it</a>
+    <a href="#screens"><span>09</span>What it looks like</a>
+    <a href="#indicators"><span>10</span>Indicators and alerts</a>
+    <a href="#arch"><span>11</span>Architecture, AI and hardware</a>
+    <a href="#coverage"><span>12</span>Concept note coverage</a>
+    <a href="#plan"><span>13</span>Build plan</a>
+    <a href="#demo"><span>14</span>The minister demo</a>
+    <a href="#risks"><span>15</span>Open decisions and risks</a>
+    <a href="#sources"><span>16</span>Sources</a>
+  </nav>
+</header>
+
+<!-- 01 -->
+<section class="sec" id="brief">
+  <div class="sec-head"><span class="sec-num">01</span><h2>The new brief</h2></div>
+  <div class="g2">
+    <div class="prose stack">
+      <p>V3 was a proof that an AI agent can check one health claim against trusted sources. The ministry now asks for something larger: the <b>Plateforme Nationale de Social Listening Sanitaire et de Gestion de l'Infodémie (PNSI)</b>, the operational tool of the "Gestion de l'infodémie" pillar of the national RCCE-IM strategy, run for ONMNE and the Ministry.</p>
+      <p>The concept note defines six layers: collection, normalisation, AI analysis, indicators, alert and decision support, and an action journal with impact evaluation. The deck adds the larger frame the minister will hear: PNSI is the first brick of a <b>Système National d'Intelligence Sanitaire</b>, and it has to plug into what ONMNE already runs (event-based surveillance, WHO EIOS, the weekly EPITEC meetings, rapid risk assessments, the 24/7 media monitoring cell, PHEOC).</p>
+      <p>One sentence in the deck notes shapes the whole product: <i>rumours are often the first signal of an emerging health situation, before classic surveillance detects it.</i> So the platform cannot only be a fact-checker. It has to read every signal twice, once as an information risk and once as a possible health event.</p>
+    </div>
+    <div class="stack">
+      <div class="callout note">
+        <h4>What "done" means for the minister presentation</h4>
+        <ul class="ticks small">
+          <li>A working application, not slides: real persisted cases, roles and approvals.</li>
+          <li>As many live sources as we can open, collecting real public content: Tunisian media, YouTube, news aggregators, Telegram, Bluesky, Facebook, TikTok and Instagram through every route available to us.</li>
+          <li>Verdicts that are decisive and sourced: every conclusion cites the passage it rests on.</li>
+          <li>Tunisian Derja in Arabic script and in Arabizi, French and Arabic, with an Arabic RTL interface.</li>
+          <li>The full cycle on one case: détection, analyse, recommandation, action, évaluation.</li>
+          <li>A cabinet view the minister would actually use, and a one-page "Note au Ministre".</li>
+          <li>Every illustrative number visibly labelled, and nothing we claim that the build does not do.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 decisions -->
+<section class="sec" id="decisions">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Decisions taken</h2>
+    <p class="lede">Recorded on 11 October 2026 after the first review. They override anything in Nour's specification or in version 1 of this page that says otherwise.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>Topic</th><th>Decision</th><th>Consequence for the build</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">D1</td><td class="k">Demo standard</td><td>A real end-to-end product that works, shown to the minister. Limits are stated, but most of the scope must run for real.</td><td>Every screen in §9 is backed by persisted data and working actions. Scenario data only where live data cannot exist yet (for example a 30-day follow-up).</td></tr>
+      <tr><td class="mono">D2</td><td class="k">Builder</td><td>Mozart builds alone, with Claude Code.</td><td>Repository and docs are written so an agent can work from them: CLAUDE.md, decision log, stage plan with acceptance tests, project skills.</td></tr>
+      <tr><td class="mono">D3</td><td class="k">Sources</td><td>Maximum coverage. Keep all six V3 sources, add every other workable source, and open Facebook, TikTok and Instagram as far as possible.</td><td>Source strategy in §5: five access routes per platform, each with a legal status shown in the interface.</td></tr>
+      <tr><td class="mono">D4</td><td class="k">Facebook</td><td>The client suggested dedicated accounts used for monitoring. We pick the pages to watch.</td><td>Dedicated monitoring accounts operated by analysts through the PNSI Capture extension, plus official API routes and logged-out collection of a curated watch-list (§5).</td></tr>
+      <tr><td class="mono">D5</td><td class="k">AI models</td><td>Hosted models for quality, zero spend for now.</td><td>Free tiers (Gemini, Groq) behind one model gateway, local Ollama fallback on the same interface. Only redacted public text leaves the machine.</td></tr>
+      <tr><td class="mono">D6</td><td class="k">Paid services</td><td>Free only for now. Paid options are listed as next steps.</td><td>Paid data providers, paid model tiers and a GPU server are costed in §13 and asked of the ministry.</td></tr>
+      <tr><td class="mono">D7</td><td class="k">Evidence whitelist</td><td>Keep the idea, rebuild it properly from real WHO and government documents through a dedicated deep research phase.</td><td>The 10 AI-written files leave the evidence path and become draft notes. The rebuilt corpus comes in stage 3.</td></tr>
+      <tr><td class="mono">D8</td><td class="k">Verification</td><td>Rebuild the pipeline to be accurate and decisive. V3's constant "uncertain" is not acceptable.</td><td>New verification engine (§7) with claim decomposition, hybrid retrieval, existing fact-checks and two-model agreement, measured on a test set.</td></tr>
+      <tr><td class="mono">D9</td><td class="k">Interface and storage</td><td>No Streamlit. PostgreSQL replaces JSON files.</td><td>Next.js + FastAPI + PostgreSQL with pgvector.</td></tr>
+      <tr><td class="mono">D10</td><td class="k">Privacy file</td><td>Prepare the INPDP step in phase 1.</td><td>Data protection impact assessment and INPDP declaration drafted in stage 0 and stage 7.</td></tr>
+      <tr><td class="mono">D12</td><td class="k">Interface design</td><td>The team rejected the visual design of V3 and of these mockups. Features and screen content stay; the look is designed from scratch, professional and simple to the eye.</td><td>Stage 1b explores three visual directions as real pages with the frontend-design and taste skills; the team picks one before other screens are built. §9 is a content reference only.</td></tr>
+      <tr><td class="mono">D11</td><td class="k">Deferred</td><td>One Health, the ONMNE request list, EIOS and PHEOC exchange.</td><td>Kept in the plan, not built for the demo.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 03 -->
+<section class="sec" id="v3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Where V3 stands</h2>
+    <p class="lede">The folder holds V3 (Streamlit, LangGraph, Ollama Qwen2.5 7B, BGE-M3, JSON files) and OMS_Demo, which is the earlier v1 of the same code. V3 covers most of layer 3 and part of layer 1. Layers 4 to 6, users and persistence do not exist yet.</p>
+  </div>
+
+  <div class="callout warn" style="margin-bottom:var(--s5)">
+    <h4>Four problems to fix before anything is shown to the ministry</h4>
+    <ul class="ticks small">
+      <li><b>Unverified "official" evidence.</b> The 10 files in <code>local_whitelist/</code> were written by AI and labelled "Source : Ministère de la Santé" or "OMS". They contain precise figures (case counts, deaths, a vaccination calendar) that nobody has checked. They feed the verdicts. They leave the evidence path until every figure is traced to a real WHO or government document (decision D7).</li>
+      <li><b>Account handles are stored.</b> Discovery records keep usernames (for example Reddit authors). The deck tells the minister that no account name is ever kept.</li>
+      <li><b>Corrections on uncertain verdicts.</b> The pipeline drafts a counter-message whenever triage says "rumour", even when its own verdict is "uncertain". The stored run on "covid vaccine causes cancer" ends in <code>counter_message_ready</code> with verdict uncertain.</li>
+      <li><b>Wrong sources, weak relevance.</b> Google News, DuckDuckGo scraping, Reddit, Bluesky, ProMED and Telegram via RSSHub. None of them is Facebook or TikTok, and the query "measles vaccine Tunisia" stored US politics threads. ProMED switched off its RSS feed on 2 June 2023, so that connector returns nothing. Reddit now requires explicit API approval.</li>
+    </ul>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>V3 component</th><th>Decision</th><th>What happens to it</th></tr></thead>
+      <tbody>
+        <tr><td class="k">LangGraph pipeline <span class="muted mono">src/pipeline.py</span></td><td><span class="tag t-rebuild">rebuild</span></td><td>Replaced by the verification engine in §7: claim decomposition, hybrid retrieval with reranking, existing fact-checks, two-model agreement, five-route triage. The stage logic and prompts are reused as a starting point.</td></tr>
+        <tr><td class="k">Arabic and Arabizi module <span class="muted mono">src/arabic_nlp.py</span></td><td><span class="tag t-keep">keep</span></td><td>Language and dialect detection and the health lexicon become features and search expansion. The Arabizi converter stays non-destructive: the original text is never overwritten.</td></tr>
+        <tr><td class="k">Inoculation engine <span class="muted mono">src/inoculation.py</span></td><td><span class="tag t-keep">keep</span></td><td>The 4-step structure (warning, technique, correction, call to action) and the channel formats become response templates in the response studio, behind the approval chain.</td></tr>
+        <tr><td class="k">Whitelist RAG <span class="muted mono">src/whitelist.py, retrieval.py</span></td><td><span class="tag t-rebuild">rebuild</span></td><td>Becomes the evidence library: document registry with issuer, version, date, approval state and page-level passages, stored in PostgreSQL with pgvector.</td></tr>
+        <tr><td class="k">Discovery connectors <span class="muted mono">src/discovery.py</span></td><td><span class="tag t-rebuild">rebuild</span></td><td>All six kept and upgraded behind one connector interface: Google News RSS, DuckDuckGo news (now the <code>ddgs</code> package), Bluesky, Reddit (official API, once approved), Telegram (direct, without the RSSHub bridge), and ProMED replaced by WHO outbreak news feeds. Many more added (§5).</td></tr>
+        <tr><td class="k">One Health tab <span class="muted mono">src/one_health.py</span></td><td><span class="tag t-line">later</span></td><td>Moves to the "signaux sanitaires" extension. Not part of the minister demo scope.</td></tr>
+        <tr><td class="k">Streamlit UI <span class="muted mono">app.py</span></td><td><span class="tag t-drop">drop</span></td><td>Replaced by a dedicated web application with roles, RTL and persistent workflows.</td></tr>
+        <tr><td class="k">JSON and .npy storage</td><td><span class="tag t-drop">drop</span></td><td>Replaced by PostgreSQL (cases, workflow, audit) and pgvector.</td></tr>
+        <tr><td class="k">AI-written whitelist files</td><td><span class="tag t-rebuild">revise</span></td><td>Moved to draft notes, excluded from verdicts. Used as a checklist of topics for the deep research phase that builds the real corpus.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 03 -->
+<section class="sec" id="research">
+  <div class="sec-head"><span class="sec-num">04</span><h2>What the research changed</h2>
+    <p class="lede">Nour's specification already sets the right engineering rules. These findings fill the gaps it leaves around data access in Tunisia, WHO practice, Tunisian language technology and the legal frame.</p>
+  </div>
+
+  <div class="g2">
+    <article class="finding">
+      <span class="eyebrow">Finding 1 · Where Tunisians are</span>
+      <h3 style="margin:0">Facebook, YouTube and TikTok carry the conversation. X barely matters.</h3>
+      <div class="stat-row">
+        <div class="stat"><b>7.80M</b><span>Facebook ad reach</span></div>
+        <div class="stat"><b>7.83M</b><span>YouTube ad reach</span></div>
+        <div class="stat"><b>6.00M</b><span>TikTok, adults 18+</span></div>
+        <div class="stat"><b>4.05M</b><span>Instagram</span></div>
+        <div class="stat dim"><b>356K</b><span>X</span></div>
+      </div>
+      <p class="small muted">DataReportal, Digital 2026: Tunisia (late 2025 figures; ad reach, not unique users). Population 12.4M, 10.4M internet users.</p>
+      <div class="so"><b>So</b>X is a low priority even though it is the easiest API to buy. The product has to be built around Facebook and YouTube first, then TikTok.</div>
+    </article>
+
+    <article class="finding">
+      <span class="eyebrow">Finding 2 · What we can legally collect</span>
+      <h3 style="margin:0">No single open door to Facebook or TikTok, but several partial ones.</h3>
+      <ul class="ticks small">
+        <li>Third-party access to Facebook Groups was cut in early 2024. CrowdTangle closed on 14 August 2024. Meta Content Library is research-only, with no data export. TikTok's Research API excludes commercial and operational users.</li>
+        <li>Comments on Pages <b>you manage</b> are fully readable through the Graph API. Public content from other Pages needs Meta App Review.</li>
+        <li><b>Logged-out collection:</b> in Meta v. Bright Data (N.D. Cal., January 2024) the court held that scraping public data while logged out did not breach Meta's terms. Meta's terms still claim to forbid it, so it remains contested.</li>
+        <li><b>Logged-in automation:</b> in Meta v. BrandTotal (2022) the court found that automated collection from logged-in accounts breached the terms and violated US anti-hacking law. Bot accounts also get blocked quickly.</li>
+        <li>Logged-out scraping services (Apify and similar) have free credits ($5 on Apify's free plan), enough for a curated watch-list during the demo period.</li>
+      </ul>
+      <div class="so"><b>So</b>We combine routes instead of betting on one: official API on institutional Pages, analyst-operated monitoring accounts with a one-click capture extension (a person browses, the tool records), logged-out collection of a curated watch-list, and a contracted provider later. We do not build unattended bot accounts that log in and scrape (§5 explains why).</div>
+    </article>
+
+    <article class="finding">
+      <span class="eyebrow">Finding 3 · What WHO already does</span>
+      <h3 style="margin:0">Align with WHO methods so ONMNE can defend every indicator.</h3>
+      <ul class="ticks small">
+        <li><b>WHO EARS</b> (COVID-19 social listening, 30 countries, 9 languages including Arabic): a taxonomy of 5 topics and 41 categories (cause, illness, treatment, interventions, information), question detection, and a velocity alert when weekly volume is at least 15% above the prior 4-week average. Its own limits: Twitter-dominated data and one category per post.</li>
+        <li><b>WHO and UNICEF 6-step infodemic insights report</b>: question, data sources, integrated analysis, recommendations, report, dissemination and action tracking.</li>
+        <li><b>EIOS 2.0</b> (October 2025): used by more than 110 Member States, adds AI signal detection and radio transcription. No public API is documented.</li>
+      </ul>
+      <div class="so"><b>So</b>Use the WHO taxonomy structure with multi-label tagging (fixing the EARS single-label limit), the EARS velocity rule as our weak-signal trigger, and the 6-step report as the template for monthly reports. Position PNSI as the national social layer that complements EIOS, not a copy of it.</div>
+    </article>
+
+    <article class="finding">
+      <span class="eyebrow">Finding 4 · Tunisian language technology</span>
+      <h3 style="margin:0">Usable building blocks exist, and none can be trusted without our own test set.</h3>
+      <ul class="ticks small">
+        <li>TunBERT (InstaDeep) and the TUNIZI Arabizi sentiment dataset give baselines for emotion and stance.</li>
+        <li>A November 2025 benchmark of LLMs on Tunisian Arabic and Tunizi found significant differences between models on transliteration, translation and sentiment.</li>
+        <li>ESPRIT-Derja-Qwen3-8B (Apache-2.0) handles Derja in both scripts, but its authors say it is tuned for conversational fluency, not factual accuracy.</li>
+        <li>Jais 2 (August 2026) is a new Arabic-centric open model family. Swan and ArabicMTEB give dialect-aware embeddings and an evaluation suite.</li>
+        <li>LinTO (Linagora) published Tunisian speech recognition models and datasets, useful for the TikTok and YouTube phase.</li>
+      </ul>
+      <div class="so"><b>So</b>Choose models per task from a 300 to 500 item Tunisian health test set (Derja Arabic script, Arabizi, French, mixed), comparing the hosted free-tier models with local candidates (Qwen3, Jais 2, ESPRIT-Derja). BGE-M3 against Swan for retrieval.</div>
+    </article>
+
+    <article class="finding">
+      <span class="eyebrow">Finding 5 · Legal frame</span>
+      <h3 style="margin:0">Plan the INPDP step in phase 1, not at the end.</h3>
+      <ul class="ticks small">
+        <li>Organic Law 2004-63 is still the law in force.</li>
+        <li>Its replacement, draft PLO 095/2025, is in committee at the ARP. As reported, it would make a DPO mandatory for public bodies, keep INPDP prior authorisation for high-risk processing, and require impact assessments for automated decisions.</li>
+        <li>Certified hosting exists locally (for example Tunisie Telecom's Data Center Carthage, ISO 27001 and 27701). The choice belongs to the ministry.</li>
+      </ul>
+      <div class="so"><b>So</b>Privacy by design is a selling point, not a footnote: redaction at ingestion, no individual profiles, aggregate actor typologies, audit log, retention jobs. We prepare the INPDP file and the impact assessment as phase 1 deliverables.</div>
+    </article>
+
+    <article class="finding">
+      <span class="eyebrow">Finding 6 · The deck's promises</span>
+      <h3 style="margin:0">Two slides promise more than any legal build can deliver on day one.</h3>
+      <ul class="ticks small">
+        <li>Slide 10 lists continuous monitoring of Facebook groups, TikTok and public Telegram. Groups are closed to third parties, and TikTok and Telegram access is unverified.</li>
+        <li>Slide 11 promises a map of accounts and influencers while slide 14 promises full anonymisation. The two conflict unless the map shows <i>types</i> of sources (media, health influencers, community pages), which is what the NotebookLM version of the slide already says.</li>
+      </ul>
+      <div class="so"><b>So</b>With the routes in §5, slide 10 can stay ambitious if it says how: "pages institutionnelles, comptes de veille, collecte des contenus publics, conventions avec fournisseurs". Groups stay out. On slide 11, speak of "typologie des relais". The minister hears a plan the demo then proves.</div>
+    </article>
+
+    <article class="finding">
+      <span class="eyebrow">Finding 7 · Free AI that is good enough</span>
+      <h3 style="margin:0">Strong hosted models are available at no cost, with one condition on data.</h3>
+      <ul class="ticks small">
+        <li><b>Gemini API free tier</b>: no card, available in Tunisia, current Flash models. Google's terms say free-tier inputs may be used to improve products and read by human reviewers, and ask users not to send sensitive or personal information.</li>
+        <li><b>Groq free tier</b>: about 1,000 requests a day on 70B-class and Qwen 27B-class models, 30 a minute, very fast. Inference data is not retained by default.</li>
+        <li>OpenRouter's free models allow 50 requests a day, too few to rely on. Cloudflare Workers AI gives a small daily allowance.</li>
+        <li>Your laptop (RTX 3050, 6 GB) runs embeddings and a 4B-class model well, an 8B model slowly.</li>
+      </ul>
+      <div class="so"><b>So</b>Hosted free tiers do the heavy reasoning on redacted public text only. Embeddings, redaction and the fallback model run locally. A single setting switches everything to local, which is the configuration the ministry would host.</div>
+    </article>
+  </div>
+</section>
+
+<!-- 05 sourcing -->
+<section class="sec" id="sourcing">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Source strategy</h2>
+    <p class="lede">Every source we can open, through every route we can defend. Each connector carries its access basis, and the Sources screen shows it, so nobody in the room has to guess where a number came from.</p>
+  </div>
+  <div class="legend" style="font-size:13px;color:var(--muted);margin-bottom:10px;gap:16px">
+    <span><span class="tag t-keep">official</span> documented API or feed offered by the platform</span>
+    <span><span class="tag t-rebuild">public, contested</span> public content collected outside an official API</span>
+    <span><span class="tag t-teal">assisted</span> a person browses, the tool records</span>
+    <span><span class="tag t-line">later</span> needs approval, access or budget</span>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Source</th><th>Route</th><th>Basis</th><th>Cost</th><th>Demo</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Tunisian online media</td><td>RSS and sitemaps of 30 to 40 sites (radios, dailies, news portals, in French and Arabic), article text and public comments where offered</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">Google News</td><td>Topic RSS for Tunisia, French and Arabic editions (kept from V3)</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">GDELT</td><td>DOC 2.0 API, filtered on Tunisian sources and health themes, French and Arabic</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">DuckDuckGo news</td><td><code>ddgs</code> package (kept from V3) as a discovery helper</td><td><span class="tag t-rebuild">public, contested</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">YouTube</td><td>Data API v3: search, videos and comment threads of Tunisian media and health channels (10,000 units a day)</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k" rowspan="5">Facebook</td><td>A · Graph API on Pages the ministry, ONMNE or regions manage: posts and every comment</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Needs one page token</td></tr>
+      <tr><td>B · Page Public Content Access through Meta App Review, for public media and health Pages</td><td><span class="tag t-line">later</span></td><td>Free</td><td>Apply now, weeks</td></tr>
+      <tr><td>C · Dedicated monitoring accounts (the client's idea) operated by analysts with the PNSI Capture extension: one click sends the post and its loaded comments, redacted, to PNSI</td><td><span class="tag t-teal">assisted</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td>D · Logged-out collection of a curated watch-list of public Pages (our proposed list, about 40 Pages: media, health professionals, community Pages), through Apify actors or our own logged-out collector</td><td><span class="tag t-rebuild">public, contested</span></td><td>$5 free credit</td><td>Yes, small volume</td></tr>
+      <tr><td>E · Unattended bot accounts that log in and scrape</td><td><span class="tag t-drop">not built</span></td><td></td><td>No</td></tr>
+      <tr><td class="k">Instagram</td><td>Capture extension; Graph API hashtag search with a business account (30 hashtags per 7 days, after App Review); logged-out public profiles via Apify</td><td><span class="tag t-teal">assisted</span> <span class="tag t-line">later</span> <span class="tag t-rebuild">contested</span></td><td>Free</td><td>Capture, Apify</td></tr>
+      <tr><td class="k">TikTok</td><td>Capture extension; official oEmbed for metadata of captured videos; logged-out collection of hashtags and accounts via Apify; audio transcription later</td><td><span class="tag t-teal">assisted</span> <span class="tag t-rebuild">contested</span></td><td>Free credit</td><td>Capture, Apify</td></tr>
+      <tr><td class="k">Telegram channels</td><td>Official Telegram API (Telethon) with a dedicated account, plus the public t.me/s preview of open channels; replaces V3's RSSHub bridge</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">Telegram tipline</td><td>A PNSI bot to which relays, health workers and citizens forward rumours they receive, including WhatsApp forwards. The only legitimate window on messaging apps</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">Bluesky</td><td>Public AppView search API (kept from V3)</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">Reddit</td><td>Official Data API for r/Tunisia and related communities, after approval under Reddit's Responsible Builder Policy</td><td><span class="tag t-line">later</span></td><td>Free</td><td>Apply now</td></tr>
+      <tr><td class="k">Health event feeds</td><td>WHO Disease Outbreak News, WHO EMRO, Africa CDC and ECDC publications (replace ProMED, whose RSS ended in 2023)</td><td><span class="tag t-keep">official</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">Existing fact-checks</td><td>Google Fact Check Tools API (ClaimReview from Nawaat, AFP, Misbar and others), used by verification, not as monitored content</td><td><span class="tag t-keep">official</span></td><td>Free key</td><td>Yes</td></tr>
+      <tr><td class="k">Search interest</td><td>Google Trends for health terms in Tunisia, as an early signal of worry</td><td><span class="tag t-rebuild">public, contested</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">Internal intake</td><td>Remontée terrain form, media cell capture, CSV import</td><td><span class="tag t-keep">internal</span></td><td>Free</td><td>Yes</td></tr>
+      <tr><td class="k">X</td><td>Pay-per-use API. Reach in Tunisia is about 356K, so it waits</td><td><span class="tag t-line">later</span></td><td>Paid</td><td>No</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="g2" style="margin-top:var(--s5)">
+    <div class="callout note">
+      <h4>Why route C instead of bot accounts</h4>
+      <p class="small">Unattended logged-in scraping is the one route a court has called a violation of US anti-hacking law (Meta v. BrandTotal). It is also fragile: Meta blocks such accounts within days, which could happen the morning of the demo. With route C a person uses the account normally and the extension records what is on screen. Same accounts, same content, but nothing a ministry would need to defend. If ONMNE later wants full automation, that is their decision to take with legal advice, and the connector interface allows it.</p>
+    </div>
+    <div class="callout">
+      <h4>Rules every connector follows</h4>
+      <ul class="ticks small">
+        <li>Redaction before storage: names, handles, phone numbers and profile links of individuals are removed. Organisation Pages keep their name.</li>
+        <li>Each item stores its route (official, assisted, public) and the run it came from.</li>
+        <li>Rate limits respected, polite intervals, no evasion of blocks or captchas.</li>
+        <li>A source that fails shows as failing. It never produces invented data.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 06 -->
+<section class="sec" id="concept">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Product concept</h2>
+    <p class="lede">One inbox for everything collected, five ways out of it. This "double lecture" is what separates PNSI from a social listening dashboard or a fact-checking tool.</p>
+  </div>
+
+  <div class="routes">
+    <div class="in">
+      <h4>Signal entrant</h4>
+      <p>A media article, a YouTube comment, a comment under a ministry post, a report from a regional relay, an entry from the 24/7 media cell.</p>
+      <p>Redacted on arrival, language and script detected, deduplicated, tagged with the WHO-style taxonomy, emotions and stance.</p>
+    </div>
+    <div class="route-list">
+      <div class="route"><span class="n">1</span><b>Signal sanitaire possible</b><p>Describes symptoms, a cluster, deaths, a contaminated product. Goes to ONMNE event-based surveillance for verification and to the EPITEC agenda. Never answered publicly by the platform.</p></div>
+      <div class="route"><span class="n">2</span><b>Allégation à risque</b><p>A checkable health claim (false remedy, vaccine myth, misread statistic). Opens or joins an infodemic case: evidence, review, response, action, follow-up.</p></div>
+      <div class="route"><span class="n">3</span><b>Question / vide informationnel</b><p>People asking, confused, not finding answers. Feeds FAQs and the information-gap list. Often the most useful output for communication teams.</p></div>
+      <div class="route"><span class="n">4</span><b>Critique / expérience de service</b><p>Legitimate criticism of a service or institution. Measured in the trust indicator and passed on to the relevant directorate. Never treated as misinformation.</p></div>
+      <div class="route"><span class="n">5</span><b>Hors sujet</b><p>Kept only for coverage statistics, then purged by the retention job.</p></div>
+    </div>
+  </div>
+
+  <h3>The cycle from the concept note, mapped to modules</h3>
+  <div class="cycle" style="margin-top:var(--s3)">
+    <div><b>Détection</b>Sources, ingestion, inbox, alerts</div>
+    <div><b>Analyse</b>Taxonomy, emotions, narratives, evidence, review</div>
+    <div><b>Recommandation</b>Alert sheet with options, response studio</div>
+    <div><b>Action</b>Approved version, recorded publication</div>
+    <div><b>Évaluation</b>48 h, 7 days and 30 days follow-up</div>
+    <div><b>Ajustement</b>Lessons, annotation dataset, rule tuning</div>
+  </div>
+
+  <h3>Four principles that run through every screen</h3>
+  <div class="g3" style="margin-top:var(--s3)">
+    <div class="callout"><h4>Coverage is always visible</h4><p class="small">Every number shows which sources it comes from and their health. A source outage never looks like a fall in rumours.</p></div>
+    <div class="callout"><h4>Machine proposes, expert decides</h4><p class="small">AI labels are marked as proposals until a named reviewer confirms them. Priority and truth status are separate fields.</p></div>
+    <div class="callout"><h4>Nothing goes out automatically</h4><p class="small">Responses are approved version by version and language by language, published by a person, then recorded.</p></div>
+    <div class="callout"><h4>Original text first</h4><p class="small">Derja, Arabizi and French are shown as written, with translation beside them, never instead of them.</p></div>
+  </div>
+</section>
+
+<!-- 07 verify -->
+<section class="sec" id="verify">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Verification engine</h2>
+    <p class="lede">V3 answered "uncertain" on almost everything. The cause was not the label: it was ten thin AI-written notes, a 7B local model, one search query per claim and no reranking. The new engine attacks each cause.</p>
+  </div>
+  <div class="cycle">
+    <div><b>1 · Decompose</b>Split the post into atomic claims. Keep negation, quantity, population, and whether the author asserts, asks or reports.</div>
+    <div><b>2 · Reuse</b>Match against already reviewed cases and existing fact-checks (Google Fact Check API). A known myth gets a known answer, with its link.</div>
+    <div><b>3 · Retrieve</b>Hybrid search (PostgreSQL full text + BGE-M3 vectors), across French, Arabic and English, then rerank. Fetch both supporting and contradicting passages.</div>
+    <div><b>4 · Backstop</b>If the corpus is thin, search PubMed and Europe PMC for systematic reviews, flagged as discovery until approved.</div>
+    <div><b>5 · Judge twice</b>Two different models assess independently from the same passages. Agreement gives a proposed verdict; disagreement goes to the reviewer.</div>
+    <div><b>6 · Check citations</b>Every cited passage must exist in the corpus and actually support the sentence that cites it. Otherwise the output is rejected and rerun.</div>
+  </div>
+  <div class="g2" style="margin-top:var(--s5)">
+    <div class="stack">
+      <h3 style="margin-top:0">Verdict scale</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Verdict</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Contredit</td><td>Approved evidence contradicts the claim</td></tr>
+          <tr><td class="k">Trompeur</td><td>Partly true, but missing context or wrongly generalised</td></tr>
+          <tr><td class="k">Confirmé</td><td>Evidence supports the claim as stated</td></tr>
+          <tr><td class="k">Contesté</td><td>Credible approved sources disagree</td></tr>
+          <tr><td class="k">Preuves insuffisantes</td><td>The corpus really lacks the evidence. The engine names the missing document type and proposes candidate sources to add, then reruns automatically once one is approved.</td></tr>
+          <tr><td class="k">Pas une allégation</td><td>Question, opinion or criticism: routed elsewhere, not judged</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="stack">
+      <h3 style="margin-top:0">How we prove it works</h3>
+      <p class="small">A test set of about 150 claims with known answers, built from WHO myth-busting pages, published fact-checks (Nawaat, AFP, Misbar) and Tunisia-specific rumours, in French, Arabic, Derja and Arabizi. Each build reports verdict accuracy and the share of "insufficient".</p>
+      <p class="small">Proposed targets, to confirm on the first run: at least 90% correct verdicts on claims inside the corpus scope, and "insufficient" below 10% on that scope.</p>
+      <div class="callout warn"><p class="small">"Preuves insuffisantes" stays as an outcome. A confident wrong verdict in front of the minister costs far more than a visible gap. The goal is to make it rare and useful, not to remove it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 -->
+<section class="sec" id="users">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Who uses it</h2>
+    <p class="lede">Roles follow Nour's specification, mapped to the Tunisian institutions named in the note and the deck.</p>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Role</th><th>Who, in practice</th><th>Main screens</th><th>Can approve</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Analyste infodémie</td><td>Provider team under ONMNE supervision (concept note §9), plus the existing 24/7 media cell</td><td>Salle de veille, Signaux, Dossiers, Narratifs</td><td>Triage and case grouping</td></tr>
+        <tr><td class="k">Référent scientifique</td><td>ONMNE epidemiologists, DSSB for vaccination, DPM for medicines</td><td>Dossier: Preuves and Évaluation tabs, Bibliothèque de preuves</td><td>Evidence status of a claim, evidence documents</td></tr>
+        <tr><td class="k">Rédacteur communication</td><td>Ministry communication unit, community management</td><td>Studio de réponse</td><td>Nothing; requests review</td></tr>
+        <tr><td class="k">Réviseur linguistique</td><td>Native Derja and Arabic reviewer</td><td>Studio de réponse</td><td>Language variant</td></tr>
+        <tr><td class="k">Approbateur institutionnel</td><td>ONMNE director or delegate</td><td>File d'approbation, Alertes</td><td>Exact version for publication</td></tr>
+        <tr><td class="k">Vue Cabinet</td><td>Minister's cabinet, Directeur général de la santé</td><td>Vue Cabinet, Rapports, Note au Ministre</td><td>Read only</td></tr>
+        <tr><td class="k">Partenaire</td><td>Regional health directorates, WHO Tunisia, other ministries</td><td>Thematic or territorial views</td><td>Read only, scoped</td></tr>
+        <tr><td class="k">Relais terrain</td><td>RCCE community relays, basic health centres, hotline staff</td><td>Remontée terrain (mobile form)</td><td>Submits only</td></tr>
+        <tr><td class="k">Administrateur</td><td>Platform operator</td><td>Sources, users, taxonomy, audit, jobs</td><td>No editorial rights</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 06 SCREENS -->
+<section class="sec" id="screens">
+  <div class="sec-head"><span class="sec-num">09</span><h2>What it looks like</h2>
+    <p class="lede">Six screens carry the demo. The interface is in French by default, with Arabic (RTL) and English. Every figure on these plates is illustrative.</p>
+    <div class="callout warn" style="margin-top:var(--s3)"><h4>Content reference only (decision D12)</h4><p class="small">These plates fix what each screen shows and does. Their visual style is rejected and will be redesigned from scratch in Stage 1b: layout, colours, type, components and density are all open.</p></div>
+  </div>
+
+  <!-- Plate A: Cabinet -->
+  <div class="plate">
+    <div class="plate-cap">
+      <span class="eyebrow">Screen A · Vue Cabinet</span>
+      <h3>The screen the minister would open in the morning</h3>
+      <p class="small muted">Three points to know today, the temperature of each theme, and the decisions waiting for the cabinet. No raw posts, no jargon. This is the closing screen of the demo.</p>
+    </div>
+    <div class="plate-scroll"><div class="screen" role="img" aria-label="Mockup of the cabinet view">
+      <div class="bar"><i></i><i></i><i></i><span class="url">pnsi.sante.gov.tn/cabinet</span></div>
+      <div class="demo-ribbon">Scénario de démonstration · données illustratives</div>
+      <div class="main" style="padding:18px 22px">
+        <div class="topline">
+          <div><h5>Point de situation infodémique</h5><span style="font-size:12px;color:var(--m-mute)">Mardi 14 octobre 2026 · 07:30 · période : 7 derniers jours</span></div>
+          <div class="filters"><div class="lang"><span class="on">FR</span><span>عربي</span><span>EN</span></div><span class="chip">Couverture : <b>14 sources actives</b></span><span class="btn pri">Note au Ministre (PDF)</span></div>
+        </div>
+        <div class="cab">
+          <div style="display:grid;gap:10px">
+            <div class="point"><i style="background:var(--m-red)"></i><div><h6>Rumeur « vaccin ROR et autisme » en hausse avant la campagne de rattrapage</h6><p>Mentions collectées ×3,4 en 5 jours, surtout en commentaires YouTube et sous les publications des directions régionales. Allégation contredite par les preuves, évaluation validée par le référent DSSB.</p><div class="pm"><span class="pill p-red">Tension 74</span><span class="pill p-green">Réponse approuvée et publiée</span><span class="pill p-grey">Suivi 48 h : jeudi</span></div></div></div>
+            <div class="point"><i style="background:var(--m-amber)"></i><div><h6>Signal sanitaire transmis à la veille ONMNE</h6><p>Plusieurs publications évoquent des enfants fiévreux avec éruption cutanée dans une même délégation. Non vérifié. Transmis à la surveillance basée sur les événements, inscrit à l'ordre du jour EPITEC.</p><div class="pm"><span class="pill p-amber">En vérification EBS</span><span class="pill p-grey">Aucune communication publique</span></div></div></div>
+            <div class="point"><i style="background:var(--m-teal)"></i><div><h6>Vide informationnel sur la disponibilité de l'insuline</h6><p>Hausse des questions sans réponse officielle accessible. FAQ en cours de validation avec la DPM.</p><div class="pm"><span class="pill p-teal">Questions ×2,1</span><span class="pill p-amber">FAQ en validation</span></div></div></div>
+          </div>
+          <div style="display:grid;gap:10px;align-content:start">
+            <div class="card"><h6>Température infodémique par thème · indice expérimental</h6>
+              <div class="temp"><span>Vaccination</span><span class="track"><i style="width:74%;background:var(--m-red)"></i></span><b>74</b><span class="pill p-red">tension</span></div>
+              <div class="temp"><span>Médicaments</span><span class="track"><i style="width:58%;background:var(--m-amber)"></i></span><b>58</b><span class="pill p-amber">vigilance</span></div>
+              <div class="temp"><span>Maladies infect.</span><span class="track"><i style="width:46%;background:var(--m-amber)"></i></span><b>46</b><span class="pill p-amber">vigilance</span></div>
+              <div class="temp"><span>Chaleur, environ.</span><span class="track"><i style="width:31%;background:var(--m-teal)"></i></span><b>31</b><span class="pill p-teal">calme</span></div>
+              <div class="temp"><span>Santé mentale</span><span class="track"><i style="width:22%;background:var(--m-teal)"></i></span><b>22</b><span class="pill p-teal">calme</span></div>
+              <p style="font-size:10.5px;color:var(--m-mute);margin-top:6px">Composantes : volume, intensité émotionnelle, vitesse, engagement. Mesure des sources couvertes, pas de la population.</p>
+            </div>
+            <div class="card"><h6>Décision attendue du cabinet</h6><p style="font-size:12.5px">Valider une prise de parole TV du porte-parole sur la vaccination ROR (option recommandée par la cellule, éléments de langage prêts).</p><div style="display:flex;gap:6px;margin-top:8px"><span class="btn pri">Ouvrir le dossier D-0142</span><span class="btn ghost">Voir les options</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Plate B: Salle de veille -->
+  <div class="plate" style="margin-top:var(--s7)">
+    <div class="plate-cap">
+      <span class="eyebrow">Screen B · Salle de veille</span>
+      <h3>The analysts' working overview</h3>
+      <p class="small muted">KPIs that drill down, volume by route, a governorate cartogram that only counts content with an explicit place, source health beside the numbers, and the priority queue. The cartogram is deliberately a tile grid, not a precise map, because location is known for a minority of items.</p>
+    </div>
+    <div class="plate-scroll"><div class="screen" role="img" aria-label="Mockup of the analyst overview">
+      <div class="bar"><i></i><i></i><i></i><span class="url">pnsi.sante.gov.tn/veille</span></div>
+      <div class="demo-ribbon">Scénario de démonstration · données illustratives</div>
+      <div class="app">
+        <aside class="side">
+          <div class="brand"><b>PNSI</b><span>Veille infodémique nationale</span></div>
+          <a class="on">Salle de veille</a><a>Signaux <em>57</em></a><a>Dossiers <em>12</em></a><a>Narratifs</a><a>Alertes <em>3</em></a><a>Réponses <em>4</em></a><a>Actions et impact</a><a>Signaux sanitaires <em>2</em></a><a>Bibliothèque de preuves</a><a>Rapports</a><a>Sources</a>
+          <span class="sp"></span><div class="who">Analyste · ONMNE<br>Cellule infodémie</div>
+        </aside>
+        <div class="main">
+          <div class="topline"><h5>Salle de veille</h5>
+            <div class="filters"><span class="chip">Période <b>14 jours</b></span><span class="chip">Thème <b>Tous</b></span><span class="chip">Langue <b>Toutes</b></span><span class="chip">Source <b>Toutes</b></span><div class="lang"><span class="on">FR</span><span>عربي</span><span>EN</span></div></div>
+          </div>
+          <div class="kpis">
+            <div class="card kpi"><span>Contenus collectés</span><b>3 482</b><small class="muted" style="color:var(--m-mute)">après dédoublonnage</small></div>
+            <div class="card kpi"><span>À trier</span><b>57</b><small class="up">+19 depuis 08:00</small></div>
+            <div class="card kpi"><span>Dossiers actifs</span><b>12</b><small style="color:var(--m-mute)">dont 3 priorité haute</small></div>
+            <div class="card kpi"><span>Alertes ouvertes</span><b>3</b><small class="up">1 non acquittée</small></div>
+            <div class="card kpi"><span>Réponses en validation</span><b>4</b><small style="color:var(--m-mute)">délai médian 6 h</small></div>
+          </div>
+          <div class="row2">
+            <div class="card"><h6>Volume quotidien par orientation</h6><svg id="volchart" viewBox="0 0 560 190" width="100%" height="190" aria-hidden="true"></svg>
+              <div class="legend"><span><i style="background:#b03a2e"></i>Allégations</span><span><i style="background:#0b7472"></i>Questions</span><span><i style="background:#b07407"></i>Signaux sanitaires</span><span><i style="background:#8796a8"></i>Critiques</span><span style="margin-left:auto">▲ 9 oct. : 12 sites médias ajoutés (rupture de couverture)</span></div>
+            </div>
+            <div class="card"><h6>Signaux localisés · gouvernorats</h6>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center">
+                <div class="carto" id="carto"></div>
+                <div style="font-size:11.5px;display:grid;gap:6px">
+                  <div><b style="font-family:var(--f-display);font-size:22px">38 %</b><br><span style="color:var(--m-mute)">des contenus ont un lieu explicite</span></div>
+                  <div style="color:var(--m-ink2)">62 % sans localisation fiable : non affectés à un gouvernorat.</div>
+                  <div class="legend" style="margin-top:0"><span><i style="background:#e6ecf1"></i>0</span><span><i style="background:#f6dfb0"></i>1-20</span><span><i style="background:#eeb17e"></i>21-60</span><span><i style="background:#d97a5d"></i>60+</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row2 wide-left">
+            <div class="card"><h6>File de priorité</h6>
+              <table class="mt q"><thead><tr><th>Dossier</th><th>Allégation (formulation neutre)</th><th>Statut de preuve</th><th>Priorité</th><th></th></tr></thead><tbody>
+                <tr><td class="mono">D-0142</td><td>Le vaccin ROR causerait l'autisme</td><td><span class="pill p-red">Contredit · validé</span></td><td><b>82</b> <span style="color:var(--m-mute);font-size:10.5px">3/4</span></td><td><span class="btn">Ouvrir</span></td></tr>
+                <tr><td class="mono">D-0147</td><td>Une tisane guérirait l'hypertension sans traitement</td><td><span class="pill p-grey">Non évalué</span></td><td><b>71</b> <span style="color:var(--m-mute);font-size:10.5px">2/4</span></td><td><span class="btn pri">Assigner</span></td></tr>
+                <tr><td class="mono">D-0139</td><td>Pénurie d'insuline dans les pharmacies</td><td><span class="pill p-amber">Preuves insuffisantes</span></td><td><b>64</b> <span style="color:var(--m-mute);font-size:10.5px">4/4</span></td><td><span class="btn">Ouvrir</span></td></tr>
+                <tr><td class="mono">D-0131</td><td>La chaleur empêcherait la transmission de la grippe</td><td><span class="pill p-amber">Trompeur, contexte manquant</span></td><td><b>38</b> <span style="color:var(--m-mute);font-size:10.5px">4/4</span></td><td><span class="btn">Ouvrir</span></td></tr>
+              </tbody></table>
+            </div>
+            <div class="card"><h6>Santé des sources</h6>
+              <div class="srch"><span><span class="dot d-g"></span>Médias tunisiens (RSS) · 36/38 sites</span><span style="color:var(--m-mute)">il y a 12 min</span></div>
+              <div class="srch"><span><span class="dot d-g"></span>Google News, GDELT, DuckDuckGo</span><span style="color:var(--m-mute)">il y a 9 min</span></div>
+              <div class="srch"><span><span class="dot d-a"></span>YouTube Data API · quota 81 %</span><span style="color:var(--m-mute)">il y a 31 min</span></div>
+              <div class="srch"><span><span class="dot d-g"></span>Facebook · capture assistée · 3 comptes</span><span style="color:var(--m-mute)">il y a 6 min</span></div>
+              <div class="srch"><span><span class="dot d-g"></span>Liste de veille publique · 41 pages</span><span style="color:var(--m-mute)">il y a 47 min</span></div>
+              <div class="srch"><span><span class="dot d-g"></span>Telegram · canaux et ligne de signalement</span><span style="color:var(--m-mute)">il y a 3 min</span></div>
+              <div class="srch"><span><span class="dot d-g"></span>Remontées terrain · 14 aujourd'hui</span><span style="color:var(--m-mute)">il y a 2 min</span></div>
+              <div class="srch"><span><span class="dot d-x"></span>Pages institutionnelles (API Graph)</span><span class="pill p-grey">jeton requis</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Plate C: Case workspace -->
+  <div class="plate" style="margin-top:var(--s7)">
+    <div class="plate-cap">
+      <span class="eyebrow">Screen C · Dossier</span>
+      <h3>The case workspace, where most of the work happens</h3>
+      <p class="small muted">The header stays fixed: neutral claim wording, evidence status (with who validated it), priority with its completeness, owner. Mentions keep the original Derja or Arabizi with a translation beside it and a stance tag, so a question that quotes a rumour is not counted as someone spreading it.</p>
+    </div>
+    <div class="plate-scroll"><div class="screen" role="img" aria-label="Mockup of the case workspace">
+      <div class="bar"><i></i><i></i><i></i><span class="url">pnsi.sante.gov.tn/dossiers/D-0142</span></div>
+      <div class="demo-ribbon">Scénario de démonstration · données illustratives</div>
+      <div class="app">
+        <aside class="side">
+          <div class="brand"><b>PNSI</b><span>Veille infodémique nationale</span></div>
+          <a>Salle de veille</a><a>Signaux <em>57</em></a><a class="on">Dossiers <em>12</em></a><a>Narratifs</a><a>Alertes <em>3</em></a><a>Réponses <em>4</em></a><a>Actions et impact</a><a>Signaux sanitaires <em>2</em></a><a>Bibliothèque de preuves</a><a>Rapports</a><a>Sources</a>
+          <span class="sp"></span><div class="who">Référent scientifique<br>DSSB</div>
+        </aside>
+        <div class="main">
+          <div class="case-head">
+            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="mono" style="color:var(--m-mute)">D-0142 · Vaccination › ROR</span><div style="display:flex;gap:6px"><span class="btn">Demander une vérification</span><span class="btn pri">Créer une réponse</span></div></div>
+            <div class="t">Allégation : le vaccin ROR provoquerait l'autisme chez l'enfant</div>
+            <div class="case-meta">
+              <span>Statut de preuve <span class="pill p-red">Contredit</span> <span class="pill p-green">validé par référent · 13/10 10:10</span></span>
+              <span>Priorité <b>82</b> (complétude 3/4 : engagement inconnu)</span>
+              <span>Risque sanitaire <b>élevé</b> (évalué par expert)</span>
+              <span>Responsable <b>Cellule infodémie</b></span>
+              <span>Langues <b>Derja, Arabizi, FR</b></span>
+            </div>
+          </div>
+          <div class="tabs"><span>Synthèse</span><span class="on">Conversations (46)</span><span>Propagation</span><span>Preuves (5)</span><span>Évaluation</span><span>Réponses (4)</span><span>Actions (1)</span><span>Suivi</span><span>Historique</span></div>
+          <div class="row2">
+            <div style="display:grid;gap:8px">
+              <div class="mention"><div class="orig ar" style="text-align:right;font-size:14.5px">التلقيح متاع الحصبة يعمل التوحّد للصغار، ما تلقحوش صغاركم</div><div class="tr">Traduction : « Le vaccin contre la rougeole donne l'autisme aux enfants, ne vaccinez pas vos enfants. »</div><div class="mm"><span class="pill p-red">affirmation</span><span>Derja · écriture arabe</span><span>· commentaire YouTube</span><span>· [compte masqué]</span><span>· 11/10</span></div></div>
+              <div class="mention"><div class="orig">el vaccin mta3 el 7asba ya3mel autisme? chkoun 3andou ma3louma s7i7a</div><div class="tr">Traduction : « Le vaccin de la rougeole donne l'autisme ? Qui a une information fiable ? »</div><div class="mm"><span class="pill p-teal">question</span><span>Derja · Arabizi</span><span>· commentaire page direction régionale</span><span>· [compte masqué]</span><span>· 12/10</span></div></div>
+              <div class="mention"><div class="orig">Une maman du groupe dit que son fils a changé après le ROR, quelqu'un a des infos ?</div><div class="tr">Rapporté (témoignage cité), pas une affirmation de l'auteur.</div><div class="mm"><span class="pill p-amber">discours rapporté</span><span>Français</span><span>· remontée terrain, centre de santé de base</span><span>· 12/10</span></div></div>
+            </div>
+            <div style="display:grid;gap:10px;align-content:start">
+              <div class="card"><h6>Preuves retenues</h6>
+                <div style="display:grid;gap:6px">
+                  <div class="ev"><b>OMS · Fiche d'information Rougeole</b><span>Passage « Vaccination » · relation : contredit l'allégation</span><small>Document approuvé · version consultée 10/2026 · page et section liées</small></div>
+                  <div class="ev"><b>Calendrier vaccinal national (DSSB)</b><span>Section ROR · relation : contexte</span><small>Document fourni par l'ONMNE · en attente de version datée</small></div>
+                  <div class="ev ctx"><b>Article de presse tunisienne</b><span>Contenu surveillé, pas une preuve clinique</span><small>Affiché comme contexte uniquement</small></div>
+                </div>
+              </div>
+              <div class="card"><h6>Historique</h6>
+                <div class="tl">
+                  <div><span>12/10 07:40</span><i></i><span>Alerte vitesse : ×3,4 vs moyenne 4 semaines</span></div>
+                  <div><span>12/10 08:05</span><i></i><span>Dossier créé et assigné (analyste)</span></div>
+                  <div><span>13/10 10:10</span><i></i><span>Évaluation « contredit » validée (référent)</span></div>
+                  <div><span>13/10 15:30</span><i></i><span>Variantes FR, AR, Derja approuvées</span></div>
+                  <div><span>13/10 18:00</span><i></i><span>Publication enregistrée : page Facebook du Ministère</span></div>
+                  <div class="fut"><span>15/10 18:00</span><i></i><span>Observation à 48 h programmée</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Plate D: Response studio -->
+  <div class="plate" style="margin-top:var(--s7)">
+    <div class="plate-cap">
+      <span class="eyebrow">Screen D · Studio de réponse</span>
+      <h3>Drafting and approval, one language at a time</h3>
+      <p class="small muted">The AI drafts from the reviewed assessment and the approved passages only, each sentence linked to its source. French, Arabic, Derja in Arabic script and Arabizi are separate variants with separate approvals. Editing any wording sends that variant back to review. The four-step inoculation structure from V3 lives here as a template.</p>
+    </div>
+    <div class="plate-scroll"><div class="screen" role="img" aria-label="Mockup of the response studio with an Arabic variant">
+      <div class="bar"><i></i><i></i><i></i><span class="url">pnsi.sante.gov.tn/reponses/R-0311</span></div>
+      <div class="demo-ribbon">Scénario de démonstration · brouillon, contenu à valider par les experts</div>
+      <div class="main" style="padding:16px 20px">
+        <div class="topline"><div><h5>Réponse R-0311 · dossier D-0142</h5><span style="font-size:12px;color:var(--m-mute)">Canal : publication Facebook · public : parents · modèle : inoculation en 4 étapes</span></div><div class="filters"><span class="btn">Comparer les versions</span><span class="btn">Copier la version approuvée</span></div></div>
+        <div class="row2" style="grid-template-columns:1.6fr 1fr">
+          <div class="variant">
+            <div class="vtabs"><span>Français <span class="pill p-green">approuvée</span></span><span class="on">العربية <span class="pill p-amber">revue linguistique</span></span><span>دارجة <span class="pill p-grey">brouillon IA</span></span><span>Arabizi <span class="pill p-grey">brouillon IA</span></span></div>
+            <div class="editor">
+              <div class="tb"><span>Version 3 · modifiée par rédacteur, 13/10 14:52</span><span>412 / 600 caractères</span></div>
+              <div class="body">لقاح الحصبة والحصبة الألمانية والنكاف آمن ولا يسبّب التوحّد.<sup>[1]</sup> هذه الإشاعة تستغلّ خوف الأولياء على أطفالهم، لكن الدراسات الواسعة لم تجد أيّ علاقة بين اللقاح والتوحّد.<sup>[1]</sup> الحصبة مرض خطير وسريع الانتشار، والتلقيح يحمي طفلك ويحمي من حوله.<sup>[1][2]</sup> لأيّ سؤال، توجّهوا إلى أقرب مركز صحة أساسية.</div>
+            </div>
+            <div style="font-size:11px;color:var(--m-mute)">[1] OMS, fiche Rougeole, passage « Vaccination » · [2] Calendrier vaccinal national, section ROR</div>
+          </div>
+          <div style="display:grid;gap:10px;align-content:start">
+            <div class="card"><h6>Circuit de validation · variante arabe</h6>
+              <div class="chain">
+                <div><span class="st ok">✓</span><span>Brouillon (IA, ancré sur 2 preuves)</span><span style="font-size:10.5px;color:var(--m-mute)">13/10 11:02</span></div>
+                <div><span class="st ok">✓</span><span>Revue scientifique · DSSB</span><span style="font-size:10.5px;color:var(--m-mute)">13/10 13:40</span></div>
+                <div><span class="st cur">●</span><span>Revue linguistique</span><span class="pill p-amber">en cours</span></div>
+                <div><span class="st no"></span><span>Approbation institutionnelle · ONMNE</span><span></span></div>
+              </div>
+            </div>
+            <div class="card" style="background:var(--m-amber-s);border-color:#efd9a6"><h6 style="color:var(--m-amber)">Règle appliquée</h6><p style="font-size:12px">Toute modification du texte, d'une citation ou de l'évaluation annule l'approbation de cette variante. La publication reste un geste humain, enregistré ensuite dans le journal des actions.</p></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Plate E: Impact -->
+  <div class="plate" style="margin-top:var(--s7)">
+    <div class="plate-cap">
+      <span class="eyebrow">Screen E · Actions et impact</span>
+      <h3>Follow-up at 48 hours, 7 days and 30 days</h3>
+      <p class="small muted">Each recorded action gets three scheduled observations, compared against a baseline window on the same sources. When coverage changes, the comparison is flagged as partial. The screen describes changes in the observed conversation and says so.</p>
+    </div>
+    <div class="plate-scroll"><div class="screen" role="img" aria-label="Mockup of the impact follow-up">
+      <div class="bar"><i></i><i></i><i></i><span class="url">pnsi.sante.gov.tn/actions/A-0088</span></div>
+      <div class="demo-ribbon">Scénario de démonstration · données illustratives</div>
+      <div class="main" style="padding:16px 20px">
+        <div class="topline"><div><h5>Action A-0088 · publication Facebook du Ministère + capsule vidéo</h5><span style="font-size:12px;color:var(--m-mute)">Dossier D-0142 · version approuvée R-0311 v3 (FR, AR, Derja) · publiée le 13/10 à 18:00 par la cellule communication</span></div></div>
+        <div class="card">
+          <table class="mt">
+            <thead><tr><th>Mesure (sources couvertes)</th><th>Référence 7 j avant</th><th>48 h après</th><th>7 jours après</th><th>30 jours après</th></tr></thead>
+            <tbody>
+              <tr><td>Mentions de l'allégation (dédoublonnées)</td><td class="mono">212</td><td class="mono">148 <span class="down">▼ 30 %</span></td><td class="mono">96 <span class="down">▼ 55 %</span></td><td style="color:var(--m-mute)">programmé 12/11</td></tr>
+              <tr><td>Part « peur » dans les mentions</td><td class="mono">41 %</td><td class="mono">33 %</td><td class="mono">29 %</td><td style="color:var(--m-mute)">programmé</td></tr>
+              <tr><td>Questions sur la vaccination ROR</td><td class="mono">63</td><td class="mono">88 <span class="up">▲</span></td><td class="mono">54</td><td style="color:var(--m-mute)">programmé</td></tr>
+              <tr><td>Comparabilité de la couverture</td><td><span class="pill p-green">stable</span></td><td><span class="pill p-green">comparable</span></td><td><span class="pill p-amber">partielle : 2 sites ajoutés</span></td><td></td></tr>
+              <tr><td>Indicateur externe (si partagé) : fréquentation vaccination, région</td><td colspan="4" style="color:var(--m-mute)">Non connecté. Donnée agrégée fournie par la DSSB sur accord de partage.</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11px;color:var(--m-mute);margin-top:8px">Lecture : évolution observée dans les sources couvertes. D'autres événements ont pu intervenir sur la période (journal des événements concomitants : 1 entrée). Ce tableau ne démontre pas un effet causal.</p>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Plate F: field form -->
+  <div class="plate" style="margin-top:var(--s7)">
+    <div class="phone-wrap">
+      <div class="phone" role="img" aria-label="Mockup of the mobile field report form">
+        <div class="ph-top"><b>Remontée terrain</b><span>PNSI · relais communautaire</span></div>
+        <form onsubmit="return false">
+          <label>Gouvernorat et délégation<div class="fld">Kairouan · Haffouz</div></label>
+          <label>Où l'avez-vous entendu ?<div class="chips"><span class="on">Communauté</span><span>Centre de santé</span><span>École</span><span>Ligne verte</span><span>Mosquée, marché</span></div></label>
+          <label>Ce qui se dit (dans la langue entendue)<div class="fld ta ar" style="text-align:right">الناس تقول اللي اللقاح الجديد فيه مواد تضرّ الصغار</div></label>
+          <label>Préoccupation principale<div class="chips"><span class="on">Peur</span><span>Colère</span><span class="on">Confusion</span><span>Méfiance</span></div></label>
+          <label>Ampleur perçue<div class="chips"><span>Quelques personnes</span><span class="on">Beaucoup</span><span>Partout</span></div></label>
+          <div class="send">Envoyer</div>
+          <div class="priv">Ne saisissez aucun nom, numéro ou adresse.<br>Fonctionne hors ligne, envoi à la reconnexion.</div>
+        </form>
+      </div>
+      <div class="prose stack" style="flex:1 1 320px">
+        <span class="eyebrow">Screen F · Remontée terrain</span>
+        <h3 style="margin:0">The community voice the deck promises</h3>
+        <p>The deck's ambition lists "perceptions et préoccupations des communautés" next to social media, and the RCCE-IM strategy describes community relays who report what they hear. Today that knowledge reaches ONMNE by phone or not at all.</p>
+        <p>A mobile form for relays, basic health centres and hotline staff turns it into structured signals that enter the same inbox and the same five routes. It reaches people who are not on social media, and it costs no API access.</p>
+        <p class="small muted">The same intake, on desktop, serves the 24/7 media monitoring cell: paste a link or text, attach a screenshot, and the item enters the pipeline with its provenance recorded as "saisie manuelle".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 -->
+<section class="sec" id="indicators">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Indicators and alerts</h2>
+    <p class="lede">Every indicator is computed from the sources actually covered, shows its components, and carries the word "expérimental" until ONMNE validates it against reviewed cases.</p>
+  </div>
+  <div class="g2">
+    <div class="stack">
+      <h3 style="margin-top:0">Indice de température infodémique</h3>
+      <p class="small">The concept note lists four components. We keep them, expose each one, and compute per theme, governorate (when location is known) and period.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Component</th><th>Measured as</th><th>Weight</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Volume</td><td>Deduplicated problematic items vs the theme's 4-week baseline, same sources</td><td class="mono">0.35</td></tr>
+          <tr><td class="k">Intensité émotionnelle</td><td>Share of fear, anger and confusion in the theme's items</td><td class="mono">0.25</td></tr>
+          <tr><td class="k">Vitesse</td><td>Week-on-week growth vs 4-week average (EARS velocity logic)</td><td class="mono">0.25</td></tr>
+          <tr><td class="k">Engagement</td><td>Engagement of the most-engaged sources, normalised within each platform</td><td class="mono">0.15</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small muted">T = 100 × weighted sum, each component scaled 0 to 1. Bands: 0-39 calme, 40-69 vigilance, 70+ tension. Weights are our proposal for ONMNE to validate, not a WHO standard. Missing components lower the completeness score instead of counting as zero.</p>
+    </div>
+    <div class="stack">
+      <h3 style="margin-top:0">Other indicators</h3>
+      <ul class="ticks small">
+        <li><b>Confiance institutionnelle</b>: among items that mention the Ministry, ONMNE or health workers, the share expressing trust, distrust or neutral stance.</li>
+        <li><b>Intentions exprimées</b>: share of items stating an intention to vaccinate, refuse, delay a consultation or use an alternative remedy.</li>
+        <li><b>Vides informationnels</b>: question clusters with no matching approved FAQ.</li>
+        <li><b>Case priority</b> (Nour's §11): 100 × (0.45 harm + 0.25 growth + 0.15 engagement + 0.15 exposure), with harm set by an expert.</li>
+        <li><b>Operational</b>: time from detection to reviewed assessment, to approved response, backlog, share of AI proposals corrected by reviewers.</li>
+      </ul>
+      <h3>Alert rules</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Trigger</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Expert flags immediate potential harm</td><td>Alert regardless of volume</td></tr>
+          <tr><td>Possible health event (route 1)</td><td>Immediate notice to the EBS focal point</td></tr>
+          <tr><td>Weekly volume ≥ 15% above 4-week average</td><td>Weak signal, analyst review</td></tr>
+          <tr><td>≥ 10 deduplicated mentions and ≥ 3× baseline</td><td>Alert, with coverage check first</td></tr>
+          <tr><td>Case priority ≥ 70</td><td>Alert to approver, cooldown on repeats</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 arch -->
+<section class="sec" id="arch">
+  <div class="sec-head"><span class="sec-num">11</span><h2>Architecture, AI and hardware</h2>
+    <p class="lede">A modular backend with background workers, as in Nour's specification. Development runs on your laptop with free hosted models for the heavy reasoning. The same code runs fully local on a server in Tunisia for the pilot, by changing one setting.</p>
+  </div>
+  <div class="arch">
+    <div class="arch-row"><b>Sources</b><div class="arch-boxes">
+      <div class="ab">Tunisian media<small>RSS, sitemaps, article comments</small></div>
+      <div class="ab">News aggregators<small>Google News, GDELT, DuckDuckGo</small></div>
+      <div class="ab">YouTube Data API<small>videos and comments</small></div>
+      <div class="ab hl">Facebook, Instagram, TikTok<small>page API, PNSI Capture, logged-out watch-list</small></div>
+      <div class="ab">Telegram<small>channels and tipline bot</small></div>
+      <div class="ab">Bluesky, Reddit, WHO feeds<small>public APIs</small></div>
+      <div class="ab hl">Internal intake<small>field form, media cell, CSV</small></div>
+    </div></div>
+    <div class="arrow-down">↓ connectors: validate, fetch, redact, normalise, record route and run</div>
+    <div class="arch-row"><b>Workers</b><div class="arch-boxes">
+      <div class="ab">Ingestion<small>redaction, language spans, dedup, relevance</small></div>
+      <div class="ab hl">Analysis<small>5-route triage, claims, taxonomy, emotions, stance</small></div>
+      <div class="ab">Narratives<small>clustering, growth, emerging signals</small></div>
+      <div class="ab hl">Verification<small>engine in §7</small></div>
+      <div class="ab">Drafting and reports<small>variants, PDF notes, follow-up jobs</small></div>
+    </div></div>
+    <div class="arrow-down">↓ Celery + Redis, versioned prompts, typed JSON outputs</div>
+    <div class="arch-row"><b>Models</b><div class="arch-boxes">
+      <div class="ab hl">Model gateway<small>one interface, per-task routing, budgets, retries</small></div>
+      <div class="ab">Gemini free tier<small>extraction, assessment, drafting</small></div>
+      <div class="ab">Groq free tier<small>fast triage, second judge</small></div>
+      <div class="ab">Ollama local<small>embeddings, fallback model</small></div>
+    </div></div>
+    <div class="arch-row"><b>Data</b><div class="arch-boxes">
+      <div class="ab">PostgreSQL<small>cases, workflow, approvals, audit log</small></div>
+      <div class="ab">pgvector + full text<small>passages and mentions</small></div>
+      <div class="ab">File storage<small>local disk now, MinIO for the pilot</small></div>
+    </div></div>
+    <div class="arrow-down">↓ FastAPI, /api/v1, object-level authorisation</div>
+    <div class="arch-row"><b>Interface</b><div class="arch-boxes">
+      <div class="ab">Next.js web app<small>FR default, AR with RTL, EN; Derja content</small></div>
+      <div class="ab">PNSI Capture<small>browser extension for analysts</small></div>
+      <div class="ab">Field form<small>mobile, offline-capable</small></div>
+      <div class="ab">Email alerts, PDF reports<small>configured recipients only</small></div>
+    </div></div>
+  </div>
+
+  <div class="g2" style="margin-top:var(--s6)">
+    <div class="stack">
+      <h3 style="margin-top:0">AI, task by task</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Task</th><th>Where it runs</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Redaction</td><td>Local rules and patterns, before anything is stored or sent out</td></tr>
+          <tr><td class="k">Language and script</td><td>Local: V3 rules plus a small classifier, spans per sentence</td></tr>
+          <tr><td class="k">Embeddings</td><td>Local BGE-M3 on Ollama (Swan compared in the benchmark)</td></tr>
+          <tr><td class="k">Route, taxonomy, emotion, stance</td><td>Groq (fast, high daily quota), batched</td></tr>
+          <tr><td class="k">Claim extraction</td><td>Gemini, typed JSON output</td></tr>
+          <tr><td class="k">Reranking</td><td>Local cross-encoder (ONNX, no GPU needed)</td></tr>
+          <tr><td class="k">Assessment</td><td>Gemini and Groq as two independent judges</td></tr>
+          <tr><td class="k">Drafting</td><td>Gemini from the reviewed assessment only; Derja always human-reviewed</td></tr>
+          <tr><td class="k">Fallback</td><td>Every task can run on the local model when a quota runs out or the network drops</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small muted">Only redacted public text is sent to hosted models. Free-tier terms allow providers to use inputs for improvement, which is acceptable for public posts in a demo and not for the pilot: the pilot moves to paid no-training tiers or to local hosting.</p>
+    </div>
+    <div class="stack">
+      <h3 style="margin-top:0">Your machine</h3>
+      <p class="small">16 GB RAM and an RTX 3050 with 6 GB are enough. Disk is the constraint: 20 GB free is not.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Item</th><th>Disk, approx.</th></tr></thead>
+        <tbody>
+          <tr><td>WSL2 Ubuntu + Docker (Postgres, Redis images)</td><td class="mono">5 to 7 GB</td></tr>
+          <tr><td>Node modules, Python environment (no PyTorch)</td><td class="mono">2 to 3 GB</td></tr>
+          <tr><td>Ollama models: BGE-M3 and one 4B-class model</td><td class="mono">4 to 5 GB</td></tr>
+          <tr><td>Reranker, Playwright browser, Claude Code</td><td class="mono">1 to 2 GB</td></tr>
+          <tr><td>Database, documents, logs</td><td class="mono">2 to 5 GB</td></tr>
+          <tr><td><b>Total</b></td><td class="mono"><b>15 to 22 GB</b></td></tr>
+        </tbody>
+      </table></div>
+      <p class="small"><b>Free up at least 40 GB, ideally 60 GB.</b> Work inside WSL2, with the repository in the Linux file system, not in OneDrive. Cap WSL at 8 GB of RAM.</p>
+      <h3>What makes it hold up in front of the minister</h3>
+      <ul class="ticks small">
+        <li>Collection and analysis run before the meeting; the demo does not wait on live API calls. One live collection is triggered on stage.</li>
+        <li>Offline switch: if the network fails, the local model takes over and a recorded collection run replays, and we say so.</li>
+        <li>Backend rules tested by direct API calls: no approval on a stale version, no correction on an insufficient verdict, no access across institutions.</li>
+        <li>Scenario data, where used, is separate from live data and labelled on screen.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 09 -->
+<section class="sec" id="coverage">
+  <div class="sec-head"><span class="sec-num">12</span><h2>Concept note coverage</h2>
+    <p class="lede">Every requirement in the note and deck, where it lands. "Demo" means working in the build shown to the minister.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Requirement</th><th>Where</th><th>How</th><th>Demo</th><th>Pilot</th><th>Later</th></tr></thead>
+    <tbody>
+      <tr><td>Messageries (§5.2)</td><td>Sources</td><td>Telegram tipline that receives forwarded rumours</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Collecte continue, ciblée par thème (§5.2)</td><td>Sources, workers</td><td>Scheduled connectors, versioned multilingual queries</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Facebook, TikTok, Instagram, X, YouTube, médias, Telegram</td><td>Sources</td><td>Media, aggregators, YouTube, Telegram, Bluesky live; Facebook, Instagram and TikTok through page API, Capture and logged-out watch-list; provider later</td><td>◐</td><td>●</td><td>X, Groups</td></tr>
+      <tr><td>Arabe dialectal, arabe standard, français, anglais</td><td>Analysis, UI</td><td>Language spans, Arabizi handling, RTL interface</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Italien (diaspora)</td><td>Analysis</td><td>Locale slot prepared, disabled until evaluated</td><td></td><td></td><td>●</td></tr>
+      <tr><td>Anonymisation dès la collecte (§5.2.3)</td><td>Ingestion</td><td>Handle, name, phone, email redaction; no profile links</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>OCR et transcription (§5.3.3)</td><td>Workers</td><td>Optional module on permitted media</td><td></td><td>◐</td><td>●</td></tr>
+      <tr><td>Détection des contenus à risque, 7 types (§5.4.1)</td><td>Analysis</td><td>Multi-label risk tags + 5 routes</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Émotions et attitudes (§5.4.2)</td><td>Analysis</td><td>6 labels from the note, multi-label</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Narratifs dominants et naissants (§5.4.3)</td><td>Narratives</td><td>Clustering, growth, analyst confirmation</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Cartographie des acteurs (§5.4.4)</td><td>Narratives</td><td>Source typology and organisation-level publishers, no individuals</td><td>◐</td><td>●</td><td></td></tr>
+      <tr><td>Température infodémique (§5.5.1)</td><td>Indicators</td><td>4 visible components, per theme and period</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Indicateurs comportementaux (§5.5.2)</td><td>Indicators</td><td>Trust, perceived severity, expressed intentions</td><td>◐</td><td>●</td><td></td></tr>
+      <tr><td>Impact des campagnes, avant / après (§5.5.3)</td><td>Actions et impact</td><td>Baseline and post windows, coverage check</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Rapports quotidiens, hebdo, mensuels (§5.5.4)</td><td>Reports</td><td>PDF snapshots; monthly on the WHO 6-step structure</td><td>◐</td><td>●</td><td></td></tr>
+      <tr><td>Alertes configurables par email (§5.6.1)</td><td>Alerts</td><td>Rules above, owner and acknowledgement</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Contenu structuré de l'alerte (§5.6.2)</td><td>Alerts</td><td>Summary, examples, emotions, risk, options</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Brouillons de posts, éléments de langage, FAQ, scripts (§5.6.3)</td><td>Response studio</td><td>Channel templates, per-language approval</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Fiche action et évaluation 48 h, 7 j, 30 j (§5.7)</td><td>Actions et impact</td><td>Scheduled observations, recorded version</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Multi-institutions et droits (§6.1)</td><td>Platform</td><td>Scoped roles, backend authorisation</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Hébergement en Tunisie, chiffrement, audit (§6.2)</td><td>Ops</td><td>Local server, TLS, encryption at rest, audit log</td><td>◐</td><td>●</td><td></td></tr>
+      <tr><td>Perceptions des communautés (deck)</td><td>Remontée terrain</td><td>Mobile form for relays and health centres</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Rumeurs comme signal précoce, lien EBS (deck)</td><td>Signaux sanitaires</td><td>Route 1, EBS notice, EPITEC export</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Cartographie géospatiale par région (deck)</td><td>Salle de veille</td><td>Governorate cartogram, explicit locations only</td><td>●</td><td>●</td><td></td></tr>
+      <tr><td>Interopérabilité EIOS, PHEOC, SI épidémiologiques (§10, deck)</td><td>Integrations</td><td>Export formats now; data exchange by agreement</td><td></td><td>◐</td><td>●</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small muted" style="margin-top:8px">● working · ◐ partial, with the limit shown in the interface</p>
+</section>
+
+<!-- 13 plan -->
+<section class="sec" id="plan">
+  <div class="sec-head"><span class="sec-num">13</span><h2>Build plan</h2>
+    <p class="lede">Track A is the build shown to the minister, made by Mozart with Claude Code. It is cut into stages, not weeks: each stage ends with a product that works and can be shown, so an early meeting date never catches us with half a system. Track B is the 12-month national pilot, which starts from the Track A code.</p>
+  </div>
+  <h3 style="margin-top:0">Track A · minister-ready build</h3>
+  <div class="weeks" style="margin-top:var(--s3)">
+    <div class="wk"><b>Stage 0</b><div><h4>Setup</h4><p>Free disk space, WSL2, Docker, Ollama, Node, Python, Claude Code and plugins. Create the free accounts and keys (Gemini, Groq, YouTube, Fact Check, Telegram, Apify). Create the GitHub repository from the starter pack. Open the data protection impact assessment skeleton.</p></div></div>
+    <div class="wk"><b>Stage 1</b><div><h4>Foundation</h4><p>Monorepo, Docker Compose, PostgreSQL schema and migrations, FastAPI with roles and object-level authorisation, Next.js shell in French, Arabic (RTL) and English with a neutral temporary layout. Done when four seeded roles log in, Arabic mirrors the layout, and API tests pass.</p></div></div>
+    <div class="wk"><b>Stage 1b</b><div><h4>Design direction</h4><p>Three clearly different visual directions built as real pages (Vue Cabinet and Dossier, in French and Arabic) with the frontend-design and taste skills. The team picks one; it becomes the design system (tokens, themed components, DESIGN.md) for every later screen.</p></div></div>
+    <div class="wk"><b>Stage 2</b><div><h4>Open sources</h4><p>Connector interface, source registry and run log. Tunisian media, Google News, GDELT, DuckDuckGo, YouTube, Bluesky, Telegram channels, WHO feeds, Telegram tipline, CSV and manual capture. Redaction and deduplication. Signals inbox and Sources screen. Done when a scheduled run collects from at least eight sources and a test proves no handle is stored.</p></div></div>
+    <div class="wk"><b>Stage 3</b><div><h4>Social platforms</h4><p>PNSI Capture extension for Facebook, Instagram and TikTok. Logged-out watch-list collector (Apify free credit). Graph API Page connector ready for a token. TikTok oEmbed. Proposed watch-list of Pages and hashtags. Done when one click on a Facebook post lands it, redacted, in the inbox.</p></div></div>
+    <div class="wk"><b>Stage 4</b><div><h4>Intelligence and evidence</h4><p>Model gateway, analysis pipeline, clustering. Evidence library and corpus v1 from real WHO and government documents for the demo themes. Verification engine (§7). Test set and evaluation script. Done when the evaluation report meets the targets or names what blocks them.</p></div></div>
+    <div class="wk"><b>Stage 5</b><div><h4>Case workflow</h4><p>Cases, response studio with four language variants, approval chain with invalidation on edit, action journal, follow-up scheduling. Done when the worked example in Nour's §37 runs end to end through the interface.</p></div></div>
+    <div class="wk"><b>Stage 6</b><div><h4>Decision layer</h4><p>Indicators and temperature, alert rules with email, Salle de veille, Vue Cabinet, cartogram, field form, Note au Ministre PDF and weekly report.</p></div></div>
+    <div class="wk"><b>Stage 7</b><div><h4>Demo hardening</h4><p>Labelled scenario data where live data cannot exist yet, offline switch, Arabic and Derja review, two timed rehearsals, readiness report, impact assessment and INPDP declaration draft, deck wording fixes.</p></div></div>
+  </div>
+  <p class="small muted" style="margin-top:10px">The deep research phase that rebuilds the evidence whitelist runs alongside stages 2 and 3 and feeds stage 4.</p>
+
+  <h3>Paid options, for the next step</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Option</th><th>What it adds</th><th>Who pays</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Paid model tiers (Gemini paid, Groq developer)</td><td>No training on inputs, higher limits: required for the pilot if hosted models stay</td><td>Ministry</td></tr>
+      <tr><td class="k">Apify paid plan or a social data provider</td><td>Facebook, Instagram and TikTok public content at volume, with comments</td><td>Ministry</td></tr>
+      <tr><td class="k">Commercial social listening licence with Maghrebi Arabic coverage</td><td>Broad historical coverage, vendor-managed access</td><td>Ministry, by tender</td></tr>
+      <tr><td class="k">X API (pay per use)</td><td>X coverage, low priority in Tunisia</td><td>Ministry</td></tr>
+      <tr><td class="k">GPU server hosted in Tunisia</td><td>Fully sovereign inference with a 30B-class model</td><td>Ministry</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Track B · national pilot, 12 months (matches the deck's four phases)</h3>
+  <div class="phases" style="margin-top:var(--s3)">
+    <div class="phase"><span class="when">Months 1-2</span><h4>Cadrage et design</h4><p>Workshops, priority themes, taxonomy and indicator validation, source permissions, INPDP declaration and impact assessment filed, hosting choice, annotation guide, reviewer roster.</p></div>
+    <div class="phase"><span class="when">Months 3-5</span><h4>Noyau et tests</h4><p>Production hardening of the Track A build, hosting in Tunisia, institutional login, paid tiers and data provider, 800 to 1,500 annotated items.</p></div>
+    <div class="phase"><span class="when">Months 6-9</span><h4>Pilote opérationnel</h4><p>Daily use by the cell, continuous Derja annotation, experimental response campaigns, impact measurement, weekly model review.</p></div>
+    <div class="phase"><span class="when">Months 10-12</span><h4>Consolidation</h4><p>New themes (chronic disease, mental health, nutrition), speech and OCR module, One Health, EIOS and PHEOC exchange formats, three-year plan.</p></div>
+  </div>
+</section>
+
+<!-- 13b asks -->
+<section class="sec" id="asks">
+  <div class="sec-head"><span class="sec-num">13b</span><h2>What we will need from ONMNE</h2>
+    <p class="lede">Deferred for now (D11). Each item unlocks a specific part of the build, so the list is ready when we contact them.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Request</th><th>Unlocks</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Admin access token for the ministry, ONMNE or one regional Facebook Page</td><td>Every comment under official posts, through the official API</td></tr>
+      <tr><td class="k">Their priority themes and the keywords the media cell already uses</td><td>Queries, taxonomy, test set</td></tr>
+      <tr><td class="k">Official national documents with dates (circulars, calendrier vaccinal, FAQs, outbreak notes)</td><td>National layer of the evidence corpus</td></tr>
+      <tr><td class="k">A sample of the media cell's past logs, anonymised</td><td>Realistic test data, annotation</td></tr>
+      <tr><td class="k">One scientific reviewer and one Derja language reviewer</td><td>Validated verdicts, approved Derja</td></tr>
+      <tr><td class="k">Their EBS signal format and EPITEC agenda format</td><td>Route 1 export</td></tr>
+      <tr><td class="k">Position on hosting, external AI use, the INPDP contact and the DPO</td><td>Pilot architecture, privacy file</td></tr>
+      <tr><td class="k">Budget lines for the paid options above</td><td>Coverage at scale, pilot hosting</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 14 demo -->
+<section class="sec" id="demo">
+  <div class="sec-head"><span class="sec-num">14</span><h2>The minister demo</h2>
+    <p class="lede">Seven minutes, one story, after the deck. It shows the breadth of sources, the double lecture, the full cycle, the Tunisian languages and the cabinet view, and it ends on the screen he would use.</p>
+  </div>
+  <ol class="script">
+    <li><b class="t">0:00</b><div><h4>Live collection</h4><p>The Sources screen: every connector with its route, last run and health. Trigger one live run. Capture a Facebook post in one click with the extension and watch it arrive in the inbox, redacted.</p></div></li>
+    <li><b class="t">0:45</b><div><h4>Salle de veille and an alert</h4><p>A velocity alert on vaccination. The volume chart and the cartogram, with the share of items without location shown.</p></div></li>
+    <li><b class="t">1:45</b><div><h4>The double lecture</h4><p>Three signals go three ways: a rumour to a case, a cluster of fever and rash reports to ONMNE surveillance with no public message, a wave of questions to the FAQ list.</p></div></li>
+    <li><b class="t">3:00</b><div><h4>The case</h4><p>Derja and Arabizi mentions with translations, a question not counted as spreading the rumour, the evidence passages, two models agreeing, the reviewed verdict.</p></div></li>
+    <li><b class="t">4:15</b><div><h4>The response</h4><p>Drafts in French, Arabic and Derja side by side, the interface switched to Arabic RTL. An edit sends the variant back to review in front of the audience.</p></div></li>
+    <li><b class="t">5:15</b><div><h4>Action and impact</h4><p>The recorded publication and the 48-hour and 7-day observations, with the coverage note.</p></div></li>
+    <li><b class="t">6:15</b><div><h4>Vue Cabinet</h4><p>The three points of the day and the decision waiting for him. Generate the Note au Ministre PDF.</p></div></li>
+  </ol>
+</section>
+
+<!-- 15 risks -->
+<section class="sec" id="risks">
+  <div class="sec-head"><span class="sec-num">15</span><h2>Open decisions and risks</h2></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Item</th><th>Risk</th><th>Our proposal</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Contested collection routes</td><td>Meta or TikTok object to logged-out collection</td><td>Small curated watch-list, polite rates, route shown in the interface; ministry decides on scale with legal advice</td></tr>
+      <tr><td class="k">Monitoring accounts blocked</td><td>Capture accounts flagged by Meta</td><td>Human use only, real institutional identity, no automation on those accounts</td></tr>
+      <tr><td class="k">Free tier limits</td><td>Quota exhausted during a run or the demo</td><td>Pre-computed analysis, per-task budgets, automatic fallback to the local model</td></tr>
+      <tr><td class="k">Data on free tiers</td><td>Inputs may be used by the provider</td><td>Redacted public text only; pilot moves to paid no-training tiers or local hosting</td></tr>
+      <tr><td class="k">Evidence corpus depth</td><td>Verdicts weak on Tunisia-specific claims</td><td>Deep research phase; "insufficient" names the missing document; national documents when ONMNE shares them</td></tr>
+      <tr><td class="k">Derja quality</td><td>Wrong translation or medical term in front of the minister</td><td>Native review of every Derja string shown; drafts labelled until approved</td></tr>
+      <tr><td class="k">Anonymity vs actor map</td><td>Contradiction between slides 11 and 14</td><td>Source typology only, no individual profiles</td></tr>
+      <tr><td class="k">Solo builder</td><td>Scope larger than one person's time</td><td>Stage order protects a working demo at every point; cut order: field form, cartogram, weekly report. The case workflow is never cut.</td></tr>
+      <tr><td class="k">Disk space</td><td>Builds fail on a full disk</td><td>Free 40 to 60 GB before stage 1</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 14 -->
+<section class="sec" id="sources">
+  <div class="sec-head"><span class="sec-num">16</span><h2>Sources</h2></div>
+  <div class="g2">
+    <div class="stack">
+      <h4>Project documents</h4>
+      <ul class="refs clean">
+        <li>Note conceptuelle PNSI (ONMNE), sections 1 to 11</li>
+        <li>Ministry deck "Plateforme Nationale Intégrée de Gestion de l'Infodémie", 31 slides with speaker notes</li>
+        <li>PNSI Complete Research and Codex Specification v1.0, 11 October 2026 (Nour Haouari)</li>
+        <li>oms_infodemie_v3 code, data and stored runs</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <h4>Research</h4>
+      <ul class="refs clean">
+        <li><a href="https://datareportal.com/reports/digital-2026-tunisia">DataReportal, Digital 2026: Tunisia</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10477919">WHO EARS development and implementation study (JMIR Infodemiology, 2023)</a></li>
+        <li><a href="https://www.who.int/news/item/06-07-2023-introducing-rapid-social-listening-and-infodemic-insights-for-action-who-and-unicef-launch-manual-on-6-steps-to-build-an-infodemic-insights-report">WHO and UNICEF, 6 steps to build an infodemic insights report</a></li>
+        <li><a href="https://who.int/news/item/13-10-2025-who-upgrades-its-public-health-intelligence-system-to-boost-global-health-security">WHO, EIOS 2.0 launch (October 2025)</a></li>
+        <li><a href="https://www.who.int/publications/m/item/public-health-taxonomy-for-social-listening-on-mpox-conversations">WHO public health taxonomy for social listening (mpox)</a></li>
+        <li><a href="https://developers.facebook.com/docs/content-library-and-api/support/faqs">Meta Content Library FAQ</a></li>
+        <li><a href="https://www.datashake.com/blog/facebook-social-data-api-in-2026">Facebook social data access in 2026 (Datashake, vendor article)</a></li>
+        <li><a href="https://developers.tiktok.com/docs/en/research-api-faq">TikTok Research API FAQ</a></li>
+        <li><a href="https://arxiv.org/abs/2511.16683">How Well Do LLMs Understand Tunisian Arabic? (2025)</a></li>
+        <li><a href="https://arxiv.org/pdf/2111.13138">TunBERT (InstaDeep)</a></li>
+        <li><a href="https://featherless.ai/models/ESPRIT-Group/ESPRIT-Derja-Qwen3-8B-v2">ESPRIT-Derja-Qwen3-8B-v2 model card</a></li>
+        <li><a href="https://arxiv.org/pdf/2608.13580">Jais 2 (2026)</a></li>
+        <li><a href="https://arxiv.org/html/2411.01192v3">Swan and ArabicMTEB</a></li>
+        <li><a href="https://arxiv.org/pdf/2504.02604">LinTO Tunisian ASR datasets</a></li>
+        <li><a href="https://globallawexperts.com/tunisia-moves-replace-its-twentyyearold-data/">Tunisia draft data protection law PLO 095/2025 (law firm summary)</a></li>
+        <li><a href="https://fr.allafrica.com/stories/202510040011.html">Tunisie Telecom Data Center Carthage certifications</a></li>
+        <li><a href="https://www.fbm.com/post/102kqw7/">Meta v. Bright Data summary judgment (Farella Braun + Martel)</a></li>
+        <li><a href="https://www.courthousenews.com/judge-rules-brandtotals-data-harvesting-violates-metas-terms-of-use-and-anti-hacking-laws/">Meta v. BrandTotal ruling (Courthouse News)</a></li>
+        <li><a href="https://developers.facebook.com/docs/development/terms-and-policies/automated-data-collection/">Meta Automated Data Collection terms</a></li>
+        <li><a href="https://ai.google.dev/gemini-api/terms">Gemini API additional terms (unpaid services)</a></li>
+        <li><a href="https://ai.google.dev/gemini-api/docs/available-regions">Gemini API available regions</a></li>
+        <li><a href="https://aireiter.com/blog/best-free-ai-api">Free AI API limits and data policies, 2026</a></li>
+        <li><a href="https://isid.org/futureofpromed/">ISID, the future of ProMED (RSS ended June 2023)</a></li>
+        <li><a href="https://developers.google.com/fact-check/tools/api">Google Fact Check Tools API</a></li>
+        <li><a href="https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/">GDELT DOC 2.0 API</a></li>
+        <li><a href="https://mediasupport.org/tunisia-a-growing-appetite-for-fact-checks">Fact-checking in Tunisia (IMS)</a></li>
+      </ul>
+    </div>
+  </div>
+  <footer>PNSI product blueprint · version 2.0 · 11 October 2026. Mockups show a proposed interface with illustrative data; they are not screenshots of a running system. Weights, thresholds and timelines are proposals for ONMNE to validate.</footer>
+</section>
+
+</div>
+
+<script>
+(function(){
+  // Volume chart: 14 days, stacked by route (illustrative values)
+  var days=['28/09','29/09','30/09','01/10','02/10','03/10','04/10','05/10','06/10','07/10','08/10','09/10','10/10','11/10'];
+  var series=[
+    {c:'#b03a2e',v:[42,38,45,40,36,33,39,44,51,58,63,96,121,138]},
+    {c:'#0b7472',v:[60,55,62,58,64,49,46,57,61,66,70,94,102,110]},
+    {c:'#b07407',v:[6,4,5,7,3,2,4,5,6,5,8,9,11,14]},
+    {c:'#8796a8',v:[30,28,33,35,31,24,22,29,34,31,33,46,44,49]}
+  ];
+  var svg=document.getElementById('volchart'); if(!svg) return;
+  var W=560,H=190,L=34,R=8,T=8,B=24,n=days.length;
+  var totals=days.map(function(_,i){return series.reduce(function(s,x){return s+x.v[i]},0)});
+  var max=350, ph=H-T-B, bw=(W-L-R)/n;
+  var out='';
+  [0,100,200,300].forEach(function(t){var y=T+ph-(t/max)*ph;out+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="#e6ebf0" stroke-width="1"/>';out+='<text x="'+(L-6)+'" y="'+(y+3)+'" font-size="9" text-anchor="end" fill="#7b8899" font-family="IBM Plex Mono,monospace">'+t+'</text>';});
+  days.forEach(function(d,i){
+    var x=L+i*bw+bw*0.18,w=bw*0.64,y0=T+ph;
+    series.forEach(function(s){var h=(s.v[i]/max)*ph;y0-=h;out+='<rect x="'+x.toFixed(1)+'" y="'+y0.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="'+s.c+'"/>';});
+    if(i%2===1) out+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(H-8)+'" font-size="9" text-anchor="middle" fill="#7b8899" font-family="IBM Plex Mono,monospace">'+d+'</text>';
+  });
+  var bx=L+11*bw; out+='<line x1="'+bx.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y1="'+T+'" y2="'+(T+ph)+'" stroke="#13253f" stroke-dasharray="3 3" stroke-width="1"/>';
+  out+='<text x="'+(bx+4).toFixed(1)+'" y="'+(T+10)+'" font-size="9" fill="#13253f" font-family="IBM Plex Mono,monospace">couverture +12 sites</text>';
+  svg.innerHTML=out;
+
+  // Governorate tile cartogram (approximate geography, illustrative counts)
+  var g=[['BIZ',0,2,18],['ARI',0,3,9],['JEN',1,0,4],['BEJ',1,1,6],['MAN',1,2,7],['TUN',1,3,64],['NAB',1,4,22],['KEF',2,0,5],['SIL',2,1,3],['ZAG',2,2,2],['BAR',2,3,15],['KAS',3,0,31],['SBZ',3,1,12],['KAI',3,2,27],['SOU',3,3,41],['MON',3,4,13],['GAF',4,0,9],['SFX',4,3,58],['MAH',4,4,8],['TOZ',5,0,1],['KEB',5,1,0],['GAB',5,2,6],['MED',5,3,11],['TAT',6,2,2]];
+  var c=document.getElementById('carto'); if(!c) return;
+  function col(v){return v===0?'#e6ecf1':v<=20?'#f6dfb0':v<=60?'#eeb17e':'#d97a5d'}
+  var html='';
+  g.forEach(function(t){html+='<div title="'+t[0]+' : '+t[3]+'" style="grid-row:'+(t[1]+1)+';grid-column:'+(t[2]+1)+';background:'+col(t[3])+'">'+t[0]+'</div>';});
+  c.innerHTML=html;
+})();
+</script>
+
+</body>
+</html>

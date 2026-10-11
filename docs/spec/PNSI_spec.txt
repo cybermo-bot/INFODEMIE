@@ -1,0 +1,1962 @@
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+TUNISIA / HEALTH INTELLIGENCE
+PNSI
+From public conversation
+to reviewed public health action
+Complete research, product and engineering specification
+Prepared for Nour Haouari to support discussion with ONMNE, the Ministry of Health and WHO Tunisia.
+This is a proposed implementation plan, not an official endorsement or an already deployed system.
+WHAT THIS DOCUMENT PROVIDES
+Evidence source registry and verification logic
+Full page inventory, multilingual and Arabic RTL requirements
+Architecture, data contracts, API boundaries and operations
+Evaluation, acceptance criteria and a staged Codex build brief
+11 October 2026 | Version 1.0 | Technical specification in English; French executive brief included.
+Keys, institutional permissions, procurement quotations and production approvals remain to be supplied. All performance
+figures and scoring thresholds below are proposed targets until measured.
+PNSI | Research, product and implementation specification | v1.0
+1
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+READING GUIDE
+A specification you can build from
+Attach this PDF to Codex as the master reference. Use section 33 as the starting instruction and section
+36 as the acceptance checklist. The source concept note remains an input, while user decisions about
+accessible sources and human approval define the implementation scope.
+No.
+Contents
+Page
+1
+Executive brief / Résumé exécutif
+4
+2
+Scope, decisions and source of requirements
+5
+3
+Users, ownership and approval rights
+6
+4
+End-to-end operational workflow
+7
+5
+Research plan and feasibility gates
+8
+6
+Data sources: realistic access matrix
+9
+7
+Source registry and connector contracts
+10
+8
+Where the evidence whitelist comes from
+11
+9
+Evidence governance and document ingestion
+12
+10
+Claim extraction, verification and abstention
+13
+11
+Scores, indicators and alert thresholds
+14
+12
+Languages, Derja, Arabizi and accessibility
+15
+13
+Architecture and technology choices
+16
+14
+Persistent data model and provenance
+17
+15
+API contract and integration boundaries
+18
+16
+Visual direction: ministry-grade interface
+19
+17
+Page inventory I: monitoring and investigation
+20
+18
+Case workspace: the central operational page
+21
+19
+Page inventory II: responses, operations and oversight
+22
+20
+Response generation and human sign-off
+23
+PNSI | Research, product and implementation specification | v1.0
+2
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+READING GUIDE / CONTINUED
+Engineering, delivery and
+references
+No.
+Contents
+Page
+21
+Actions, follow-up and impact interpretation
+24
+22
+Reports, exports and decision briefs
+25
+23
+Privacy, data residency and the actor-map conflict
+26
+24
+Security controls and misuse resistance
+27
+25
+AI implementation and model-selection strategy
+28
+26
+Evaluation datasets and scientific validation
+29
+27
+Functional tests and release evidence
+30
+28
+Resources, staffing and realistic costs
+31
+29
+Deployment, reliability and support
+32
+30
+Delivery roadmap and gated milestones
+33
+31
+Unresolved decisions and risk register
+34
+32
+Configuration and API-key placeholders
+35
+33
+Codex master build instruction
+36
+34
+Codex tasks, repository layout and deliverables
+37
+35
+Machine-readable contracts and workflow invariants
+38
+36
+Definition of done and acceptance checklist
+39
+37
+Worked example: one claim from detection to follow-up
+40
+38
+Research references I: evidence and public health
+41
+39
+Research references II: APIs and engineering
+42
+40
+Traceability to the supplied concept note
+43
+41
+Glossary and handover package
+44
+42
+Appendix A: taxonomy and multilingual query design
+45
+43
+Appendix B: permitted image and audio processing
+46
+44
+Appendix C: evidence registry starter template
+47
+45
+Appendix D: daily operating procedures
+48
+PNSI | Research, product and implementation specification | v1.0
+3
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+01 / MINISTRY BRIEF
+Executive brief / Résumé exécutif
+La PNSI est une plateforme de veille sanitaire numérique et d’aide à la décision proposée pour l’ONMNE
+et le Ministère de la Santé, en lien avec les partenaires du projet. Elle observe les conversations
+publiques accessibles, identifie les questions et allégations sanitaires, recherche des preuves et prépare
+des réponses soumises à validation humaine.
+Un service national, une couverture explicitement mesurée
+La première version couvre des sources sélectionnées et autorisées. Elle ne prétend pas représenter
+toute la population tunisienne ni couvrir Facebook, Instagram ou TikTok sans accès confirmé. Les
+langues requises sont le français, l’anglais, l’arabe standard et le dialecte tunisien, écrit en caractères
+arabes ou en Arabizi. L’italien, mentionné dans la note conceptuelle pour la diaspora, reste une
+extension prévue.
+Les capacités attendues
+Collecte et recherche multilingues; regroupement des allégations; bibliothèque de preuves approuvées;
+analyse des préoccupations et de la propagation observée; tableaux de bord; alertes; rédaction de
+brouillons; validation scientifique et institutionnelle; journal des actions; suivi à 48 heures, 7 jours et 30
+jours.
+Une réalisation professionnelle et réaliste
+Interface web dédiée avec frontend et backend séparés; prise en charge complète de l’arabe de droite à
+gauche; droits par institution; audit; hébergement de production en Tunisie selon le cadre validé. Les
+données de démonstration sont clairement signalées. Les clés API sont fournies par la porteuse du projet
+et ne sont jamais incluses dans le code ou ce document.
+Ce dossier constitue un cahier de conception et de réalisation. Il n’atteste ni d’un déploiement
+opérationnel, ni de la conformité juridique, ni d’un partenariat officiellement approuvé. La validation des
+experts, les autorisations d’accès et les essais locaux conditionnent le passage en production.
+PNSI | Research, product and implementation specification | v1.0
+4
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+02 / SCOPE
+Scope, decisions and source of
+requirements
+The source document is “NOTE CONCEPTUELLE (2) (1).docx”, a 17-page PNSI proposal supplied by the
+user. It specifies six functional layers, expert-reviewed responses, local hosting, differentiated
+institutional access, reporting, training, outsourced operations and a national pilot. This specification
+translates those ambitions into buildable requirements.
+Confirmed user decisions
+Implementation consequence
+All health topics, not medicines only
+Use an extensible taxonomy; launch with partner-selected
+priorities.
+French, English, Arabic and Tunisian dialect
+Localize the interface; process Arabic-script Derja and
+Latin-script Arabizi, including mixed posts.
+No Streamlit product interface
+Dedicated web application and API with persistent
+workflows.
+No automatic public responses
+Human-approved response versions; manual publication
+and recording by default.
+Minimal API budget; keys supplied later
+RSS/web/import baseline; optional connectors disabled
+until approved and configured.
+Requirement language
+MUST indicates a release requirement. SHOULD is a recommended capability that may be deferred
+with a documented reason. Proposed targets, scores, polling intervals and resource sizes are design
+assumptions, not measurements or institutional decisions.
+Not in the initial scope: unrestricted access to private groups or messaging, individual diagnosis,
+inference of a person’s health status, automatic sanctions, claims of national prevalence, or causal
+attribution of health outcomes to communication alone. Broad platform coverage, Italian, large-scale
+audiovisual processing and epidemiological integration are gated extensions.
+PNSI | Research, product and implementation specification | v1.0
+5
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+03 / GOVERNANCE
+Users, ownership and approval
+rights
+Role
+Permitted responsibilities
+Institution administrator
+Manage membership, scoped roles and source
+configuration; cannot silently grant scientific authority.
+Analyst
+Review collected material, group claims, assign cases,
+triage and request evidence.
+Scientific reviewer
+Accept or correct assessments and evidence relevance;
+record justification.
+Communication editor
+Draft and adapt responses by language and channel;
+request review.
+Institutional approver
+Approve a specific reviewed response version for use by
+that institution.
+Decision maker / partner viewer
+Read authorized summaries and exports; no sensitive
+source access by default.
+Platform operator
+Operate infrastructure and jobs; no editorial approval
+merely by being an operator.
+Small teams may combine roles under a documented policy. For high-risk claims, require an
+independent scientific reviewer and institutional approver. The administrator must not be able to bypass
+workflow gates through frontend-only controls.
+Scope and accountability
+Every case, assessment, response, action and report belongs to an institution or a deliberately shared
+workspace. Shared access is explicit and revocable. Backend authorization applies to objects, search
+results, aggregates, exports and attachments; a hidden menu is not a security boundary.
+Assign each case an owner, reviewer, response editor, due date and escalation contact. Store transitions
+in an append-only audit trail. Keep ONMNE operational oversight and Ministry decision views from the
+note; confirm whether the proposed outsourced operating model actually applies before assigning
+contracts or responsibilities.
+PNSI | Research, product and implementation specification | v1.0
+6
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+04 / WORKFLOW
+End-to-end operational workflow
+Stage
+Input, output and mandatory gate
+1. Configure
+Approved source record, topic terms, access route and
+collection schedule.
+2. Collect
+Permitted public material -> provenance record; record
+failures and watermarks.
+3. Prepare
+Redact personal data, detect language spans, normalize a
+copy, deduplicate.
+4. Understand
+Identify assertions, questions, reported speech and
+candidate claims.
+5. Group and triage
+Link related mentions; analyst confirms case boundaries
+and priority.
+6. Retrieve evidence
+Search approved documents; store passages, versions and
+relevance.
+7. Assess
+AI proposes status; scientific reviewer resolves or marks
+uncertainty.
+8. Draft and approve
+Evidence-grounded draft -> language review ->
+institutional approval.
+9. Record action
+Responsible person publishes externally; record channel,
+time and exact version.
+10. Follow up
+Observe changes at 48h, 7d, 30d; document limits and
+lessons.
+A case may be closed as a question, legitimate criticism, duplicate or irrelevant content without a
+corrective response. A high-harm, unverified claim can warrant urgent investigation before enough
+evidence exists for a conclusion. Priority and evidence status are independent.
+Each stage must expose its status, last successful operation, owner and failure reason. Retries resume
+from the last safe checkpoint. Evidence updates may reopen an assessment; an edited response loses
+approval. Publication remains a human action in the initial release.
+PNSI | Research, product and implementation specification | v1.0
+7
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+05 / RESEARCH
+Research plan and feasibility gates
+Work package
+Concrete research output
+Source audit
+Named Tunisian sources, permitted routes, quotas,
+retention/deletion rules, language mix and usable sample
+yield.
+Evidence audit
+Partner-approved seed registry; active guidelines, local
+alerts, versions and document-level permissions.
+Language research
+Locally annotated Derja/Arabizi/code-switch test set; error
+analysis by script, topic and language.
+AI comparison
+Benchmark candidate models for retrieval, claim
+extraction, grounding, latency and cost.
+User research
+Observe analyst and approver tasks; validate case page,
+alert and response workflows.
+Operational research
+Measure ingestion uptime, reviewer workload, response
+turnaround and coverage changes.
+First four weeks: proposed discovery sequence
+Week 1: workshops with health reviewers and operators; approve taxonomy, responsibilities and data
+handling. Week 2: test 5-10 permitted websites or feeds plus one candidate social connector; measure
+actual Tunisian health-content yield. Week 3: build the seed evidence corpus and annotation guide;
+double-review a first claim sample. Week 4: demonstrate one complete case workflow and decide what
+sources and models qualify for the pilot.
+Feasibility gates: a working permitted data route; accessible and current evidence; qualified reviewers;
+an acceptable local hosting arrangement; measurable language quality. If a gate fails, narrow the scope
+or use authorized manual imports. Never replace an unavailable API with undeclared circumvention or
+claim live coverage without a successful collection test.
+PNSI | Research, product and implementation specification | v1.0
+8
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+06 / DATA ACCESS
+Data sources: realistic access matrix
+Source
+Current evidence / proposed treatment
+Tunisian websites and RSS
+Baseline: selected feeds and permitted page retrieval.
+Public readability is not blanket reuse permission. Confirm
+terms per site.
+YouTube
+Official Data API with quotas [R3]. Pilot only with user key
+and permitted fields. Comments may be unavailable.
+Bluesky
+Public unauthenticated endpoints exist [R4]. Measure
+Tunisian relevance; search coverage is limited to the
+service.
+Mastodon
+Public timeline API documented [R5]; instance
+policy/authentication varies. Optional and
+instance-specific.
+X
+Pay-per-use [R6]; currently $0.005/post read. Disable by
+default on a zero-budget deployment.
+Reddit
+Explicit approval; research via RFR [R7]. Treat as pending
+access, not a free baseline.
+Facebook / Instagram
+Meta Content Library access depends on
+eligibility/approval [R8-R9]; free SRE route does not imply
+export or integration rights.
+TikTok / public Telegram
+Candidate extensions only. Access, jurisdiction, eligible
+accounts, media rights and terms not verified for this
+project.
+Manual import
+Authorized redacted text/CSV/JSON supplied by analysts;
+provenance and import labeling required.
+Rules checked on 11 October 2026. Recheck before implementation and procurement. Source
+enablement requires a recorded access basis, allowed use and deletion process. News articles are
+monitored content; they are not automatically clinical evidence.
+Measure coverage by connector, source list, topic query, period and language. Do not infer Tunisia
+residence from language alone. Store a Tunisia-relevance rationale such as explicit place reference or
+verified local publisher; expose unknown geography.
+PNSI | Research, product and implementation specification | v1.0
+9
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+07 / INGESTION
+Source registry and connector
+contracts
+Maintain separate monitoring_sources and evidence_sources. A publisher may appear in both only
+after two independent approvals with different scopes. Each monitoring record MUST contain ID,
+institution, name, exact host/feed, platform, permitted method, permission reference, allowed fields,
+languages, topics, schedule, quota, retention policy, owner, last check and enabled state.
+Connector interface
+Implement validate_config(), healthcheck(), fetch_batch(cursor, since, limit), normalize(item)
+and apply_deletions(). Return records, next cursor, watermark, rate-limit information and partial
+errors. Required item fields: source ID, platform item ID or permitted hash, published/fetched UTC
+timestamps, text, language hints, available engagement counts, content type, access status and
+provenance visibility.
+Use idempotency on source plus item identity; update edits as versions instead of new independent
+posts. Retry transient errors with exponential backoff and jitter; respect Retry-After. Quarantine
+repeated schema failures and route dead-letter jobs to an operator. A missing key yields “not
+configured”; a denied request yields “access denied”; neither yields invented data.
+Collection policy
+Proposed pilot: RSS every 30 minutes; permitted website lists every 2-6 hours; API polling according to
+quotas. Values are configurable and measured in the pilot. Sanitize HTML and retain relevant headings.
+No access to private groups. Author-submitted exports require rights and redaction checks. Preserve
+original and normalized text separately; apply source deletion rules to cached text, vectors and derived
+examples.
+PNSI | Research, product and implementation specification | v1.0
+10
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+08 / EVIDENCE SOURCES
+Where the evidence whitelist comes
+from
+Registry seed
+Purpose and verification status
+ONMNE - www.onmne.tn [R2]
+Opened and verified as an ONMNE site with publications
+and thematic dossiers. Select individual official documents;
+do not trust the entire domain blindly.
+Ministry of Health
+Request the current official publication channels and
+approved documents directly from partners. Candidate
+host santetunisie.rns.tn was not readable in this check.
+DPM - dpm.tn [R10]
+Official role/mission page surfaced; medicine alerts and
+regulatory documents are candidates. Confirm current
+issuing authority and document validity with partners.
+INEAS - ineas.tn
+Candidate Tunisian clinical guideline source. Homepage
+retrieval failed during this research; obtain current guides
+from the institution.
+INSP
+Request current authoritative publication location and
+approved material from partners; no verified endpoint
+supplied here.
+WHO guidelines [R11]
+Guidelines catalog and topic-specific recommendations;
+check edition, population and local applicability.
+PubMed / NCBI [R12]
+Discovery API, not a truth whitelist. Individually review
+studies, reviews, retractions and accessible text.
+Build a curated corpus, not an unrestricted domain filter
+Start with 30-50 partner-selected documents across 3-5 pilot themes; this is a planning target. Ask
+reviewers for current circulars, public FAQs, national recommendations and outbreak notices. Register
+exact document URLs, issuing body, topic, edition, effective date, language, permitted storage and
+responsible reviewer. Keep documents pending until reviewed.
+Additional international authorities or specialty societies may be added per topic after scientific
+approval. Avoid adding all journals, news websites, preprints or every PubMed record to the trusted
+corpus. The whitelist controls eligible evidence, but only relevant passages support a particular claim.
+PNSI | Research, product and implementation specification | v1.0
+11
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+09 / EVIDENCE PIPELINE
+Evidence governance and document
+ingestion
+Evidence source lifecycle: proposed -> reviewed -> approved -> suspended/retired. A source
+steward proposes changes; a scientific reviewer approves scope and authoritative document types.
+Every change records actor, date, reason and version. Emergency source additions still require
+documented review.
+Record
+Required fields
+Evidence source
+Organization, exact host/path scopes, topic remit,
+jurisdiction, allowed document types, approval state,
+permissions, reviewer, review date.
+Document
+Title, canonical URL, issuing body, language,
+publication/effective/review date, version, checksum,
+retrieval time, permission, withdrawn/superseded flags.
+Passage
+Document/version ID, page/section/offset, text, extraction
+method and confidence, topic, embedding version.
+Claim-evidence link
+Supporting/contradicting/contextual relation, relevance
+explanation, population fit, date fit, reviewer status.
+Processing pipeline
+Fetch approved resources or accept authorized uploads; detect MIME type; scan uploads; extract text,
+with OCR only when required; preserve pages and headings; redact any accidental personal data; create
+semantically coherent passages; index keyword and multilingual-vector representations; validate
+sampled extraction against the original. The reader must be able to open the relevant page or passage.
+Use provisional 400-700-token chunks with modest overlap; evaluate retrieval before settling sizes. Poll
+urgent alerts more often than stable guidelines. Track supersession explicitly. A document without a
+date is not automatically current. If a critical source is unavailable, display the failure and allow
+authorized manual upload; never manufacture a quote or cite an unseen full text.
+PNSI | Research, product and implementation specification | v1.0
+12
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+10 / VERIFICATION
+Claim extraction, verification and
+abstention
+Identify atomic, checkable claims while preserving context, negation, timing, population, quantity and
+source stance. Separate author assertions, questions, sarcasm, quotations and reported rumors. A post
+can contain several claims. Merge only equivalent claims; “can cause” and “always causes” must not be
+treated as the same statement.
+Verification sequence
+Create a neutral claim representation in the original language and a retrieval translation. Search the
+approved local corpus first, then approved international sources and NCBI discovery where appropriate.
+Retrieve both supporting and contradicting material. Rerank by meaning, authority, currentness and
+local applicability. Produce a structured assessment linking each conclusion to passages. A scientific
+reviewer confirms or changes it.
+Evidence status
+Meaning
+Unassessed
+No substantive verification completed.
+Supported
+Evidence supports the claim in the stated context.
+Contradicted
+Relevant evidence contradicts it.
+Misleading / missing context
+Some factual content but an unjustified interpretation,
+omission or generalization.
+Insufficient evidence
+Not enough reliable evidence to decide.
+Conflicting evidence
+Credible relevant sources disagree; specialist resolution
+needed.
+Not a factual claim
+Question, opinion or criticism requiring a different
+response.
+“Rumor” describes circulation of an unverified claim, not a false verdict. “Disinformation” implies intent;
+do not infer intent from text classification alone. Critical disagreement with institutions is not evidence of
+falsehood. Keep machine proposals distinct from reviewer-confirmed assessments and provide a
+correction/reopening mechanism.
+PNSI | Research, product and implementation specification | v1.0
+13
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+11 / ANALYTICS
+Scores, indicators and alert
+thresholds
+Maintain three separate values: priority for action, evidence status for the claim, and model
+confidence only when calibrated. Do not display an invented “truth percentage”. A model’s
+self-reported certainty is not a measured probability.
+Proposed triage score, subject to validation
+Priority = 100 × (0.45H + 0.25G + 0.15E + 0.15V), where H is expert-assessed potential health harm, G
+is growth within observed source coverage, E is available engagement normalized within platform, and V
+is exposure proxy based on collected mentions. Components are scaled 0-1, with explanations. These
+weights are initial design choices, not WHO-endorsed values.
+When data are missing, show score completeness and a provisional/manual priority rather than silently
+treating unknowns as zero. Do not compare like counts directly across platforms. Use stable-source
+baseline windows and mark API outages or source additions. Never call a collected-post count “people
+reached” without a valid reach measure.
+Proposed alert rule
+Guard / action
+Expert flags immediate potential harm
+Escalate even with low volume; evidence may remain
+uncertain.
+At least 10 deduplicated mentions and >=3x baseline
+growth
+Analyst review; a coverage change must not be mistaken
+for a surge.
+Priority >=70; >=40 medium
+Pilot thresholds only; tune against reviewed cases and
+capacity.
+Repeated signal for same case
+Deduplicate, apply cooldown; reopen for meaningful
+changes.
+The concept note’s “infodemic temperature” should remain an experimental composite with visible
+components, denominator and uncertainty. Never present it as an established national metric. Alerts
+need an owner, rationale, due time, acknowledgement and escalation history.
+PNSI | Research, product and implementation specification | v1.0
+14
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+12 / LOCALIZATION
+Languages, Derja, Arabizi and
+accessibility
+Layer
+Mandatory behavior
+UI locales
+French default; English, standard Arabic and reviewed
+Tunisian Derja interface strings. Language selection
+persists per user.
+Content handling
+Arabic-script Derja, Arabizi, French, English, standard
+Arabic and mixed-language spans. Unknown language is
+allowed.
+Response variants
+French, English, Arabic and Derja, with separate
+Arabic-script and Arabizi variants where requested;
+approve each variant.
+RTL layout
+Arabic/Arabic-script Derja mirror layout; Latin Arabizi
+remains LTR. Use bidirectional isolation for IDs, URLs and
+mixed text.
+Future extension
+Italian from the concept note; prepared locale slot,
+disabled until translations and evaluation are ready.
+Keep original text unchanged; store normalization and translation as derived views. Arabizi digits can
+represent sounds, but mappings are contextual: do not apply a universal destructive digit replacement.
+Retain negation, emojis, punctuation and clinical units when they alter meaning. Mark uncertain
+transcription and translation; allow reviewer correction.
+Search and rendering
+Use language-aware keyword expansion plus evaluated multilingual embeddings. Query in one language
+should retrieve equivalent claims in another; expose original and translation side by side. RTL tables,
+forms, charts, drawers, pagination and PDFs require testing. Dates and number formats follow locale;
+timestamps remain UTC internally and display with an explicit timezone.
+Accessibility target: WCAG 2.2 AA design practices, verified in testing. Keyboard navigation, visible
+focus, chart table alternatives, readable contrast, scalable text, descriptive labels and status words
+alongside colors are required. Derja medical wording and translated corrections must be reviewed
+locally; translation alone does not establish scientific equivalence.
+PNSI | Research, product and implementation specification | v1.0
+15
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+13 / ENGINEERING
+Architecture and technology choices
+Recommended baseline: a modular backend with asynchronous workers, rather than many
+independent microservices before the pilot. This preserves clear domain boundaries without imposing
+Kafka, Kubernetes, Neo4j or several databases from day one. Split services only after measured scale or
+isolation requirements justify it.
+Component
+Proposed implementation
+Web frontend
+Next.js, React, TypeScript; accessible component system,
+Tailwind styling, localized routing [R13].
+API
+FastAPI with typed request/response models and
+generated OpenAPI [R14]; domain services and centralized
+authorization.
+Persistent data
+PostgreSQL for cases, roles, workflows and audit; pgvector
+as an optional evaluated vector extension.
+Files
+Locally hosted S3-compatible object storage; private
+signed access, malware scanning and retention jobs.
+Workers
+Celery + Redis, with a scheduler, persistent job records
+and idempotency; separate CPU/optional GPU queues.
+Models
+Provider adapters for local or approved external inference;
+separate extraction, retrieval/reranking and drafting roles.
+Identity
+Institutional OIDC when available; secure local accounts for
+isolated development only.
+Operations
+Containerized services, reverse proxy/TLS, health checks,
+metrics, logs, backups and deployment runbook.
+Data path: browser -> API -> PostgreSQL/private storage; API -> queue -> workers -> permitted sources
+or approved model adapters; workers -> evidence/search indexes -> API. The browser never calls a
+secret-bearing social or model API directly.
+Keep collection, evidence, inference, review, action and reporting modules separate. Adopt maintained
+stable dependency versions at implementation time, lock them and scan licenses/vulnerabilities. No
+version number here is a promise that a package will remain supported. These are engineering
+proposals, not a prescribed ministry stack.
+PNSI | Research, product and implementation specification | v1.0
+16
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+14 / DATA CONTRACTS
+Persistent data model and
+provenance
+Entity
+Core fields and relations
+Institution / membership
+UUID, institution, user, role, scope, active state;
+membership audit.
+Source / collection run
+Permission record, config reference; run timestamps,
+cursor, counts, failures, coverage snapshot.
+Content item / revision
+Source identity, UTC times, redacted original, normalized
+text, languages, metrics, deletion status.
+Claim / mention / case
+Atomic claim, context, language, linked mention IDs,
+owner, status, topic and priority explanation.
+Narrative / assignment
+Cluster version, case members, merge/split history, analyst
+confirmation.
+Document / passage
+Evidence source, version, checksum, permissions, page
+offsets and extraction confidence.
+Assessment / evidence link
+Claim, status, rationale, passage IDs, contradictions, model
+run, reviewer and review time.
+Response / variant / approval
+Exact text/version, language/script, cited assessment
+version, reviewers, approvals and invalidation.
+Action / follow-up
+Approved version, publisher, channel, time, baseline,
+windows, coverage and outcomes.
+Alert / report / audit / job
+Owner and transitions; query snapshots; immutable actor
+events; retry and task status.
+Foreign keys enforce referential integrity. Use optimistic concurrency via version columns; all mutable
+records have created_at, updated_at and deletion policy. Index institution, source, date, topic, state and
+case relations. Deduplication must not erase provenance or inflate count of independent claims.
+Every output can be traced to source revision, processing/model version, prompt version, evidence
+document version and reviewer action. Keep organizational accounts separate from individual
+identifiers. Use anonymized examples and aggregates in exports. Restricted provenance storage is a
+deliberate privacy decision, not a default feature.
+PNSI | Research, product and implementation specification | v1.0
+17
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+15 / API
+API contract and integration
+boundaries
+All application endpoints live under /api/v1. Require authenticated scoped access except /health/live
+and tightly limited readiness. Publish OpenAPI and generate typed frontend clients. Cursor pagination
+uses limit <=100; filters include time interval, topic, source, language, evidence status and institution
+scope.
+Endpoint family
+Operations
+GET /me; GET /overview
+Current role/locale; aggregate dashboard with coverage
+and filter snapshot.
+/sources; /collection-runs
+Read/configure permitted sources; operator validation and
+enablement.
+/content; /imports
+Search redacted items; inspect revisions; upload validated
+imports.
+/claims; /cases; /narratives
+Create, assign, merge/split, triage; GET
+/cases/{id}/timeline.
+/evidence-sources; /documents
+Source review; ingest approved docs; inspect passages
+and supersession.
+POST /claims/{id}/verify
+202 + job ID; GET /jobs/{id} returns
+queued/running/succeeded/failed.
+/assessments/{id}/review
+Scientific decision with rationale and expected_version.
+/responses; /responses/{id}/approve
+Draft version, request reviews, approve exact
+variant/version; never automatic publication.
+/actions; /follow-ups; /alerts
+Record publication, schedule observations,
+acknowledge/escalate alerts.
+/reports; /audit; /users
+Queued exports, authorized audit view and scoped
+membership management.
+Mutation requests include expected_version and, for retry-sensitive operations, Idempotency-Key. Errors
+use code, safe message, field errors and request_id; never expose secrets. Return 401/403 for
+authorization, 409 for version conflicts, 422 for validation, 429 with retry guidance and 503 for
+unavailable dependencies. Authorization checks occur before counts or file access.
+Background job progress uses polling first, optional server-sent events later. Exports are scoped,
+expiring private downloads. Avoid unsafe user-supplied fetch URLs; only validated source scopes can
+trigger remote retrieval.
+PNSI | Research, product and implementation specification | v1.0
+18
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+16 / PRODUCT DESIGN
+Visual direction: ministry-grade
+interface
+Create a calm institutional workspace: white and light-grey surfaces, deep navy navigation, teal actions,
+restrained amber/red risk accents, strong typography and generous spacing. Professional depth comes
+from clear evidence, filters and workflow states. Do not add decorative 3D effects, fake national maps or
+invented live metrics.
+PNSI
+National health intelligence
+DEMONSTRATION DATA | Coverage: selected sources
+Overview
+Collected items
+Needs review
+Approved drafts
+1,280
+24
+8
+Conversations
+Claims & cases
+Evidence library
+Conversation volume over time
+Response studio
+Source health
+RSS: connected
+YouTube: pending
+Actions & impact
+Meta: unavailable
+Last sync: shown
+Reports
+Illustrative counts only - no national prevalence
+Administration
+Priority review queue
+C-014 | Unassessed | High potential harm | Assign reviewer
+C-009 | Conflicting evidence | Review required
+C-003 | Approved response | Awaiting recorded publication
+This is a proposed layout, not a running platform. All numbers above are demonstration values. Use a
+persistent language switcher, institution selector, search, notifications and profile menu. Separate
+priority from evidence badges. Display source health and coverage beside statistics.
+Recommended layout: left navigation, compact global filters, KPI cards, trend chart, review queue and
+source-health panel. At 1440 px, provide a two-column case workspace; at tablet widths stack panels;
+mobile supports reading and urgent review. Provide loading, empty, partial, error and restricted states
+for every component.
+PNSI | Research, product and implementation specification | v1.0
+19
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+17 / PAGES
+Page inventory I: monitoring and
+investigation
+Page / route
+Required content and interactions
+Sign in /login
+Secure account/SSO, recovery, session handling, locale
+selector; generic error messaging.
+Overview /overview
+Observed counts, priority cases, unreviewed assessments,
+trends, source freshness and filter-aware coverage. Drill
+down from every KPI.
+Conversations /conversations
+Search/filter, original + translation, source/date,
+assertion/question stance, duplicate links and redacted
+context. Open case or create claim.
+Import /imports
+File template, validation preview, provenance declaration,
+redaction preview, job results and row-level errors.
+Claims /claims
+Evidence status, reviewer state, priority, topic, source
+diversity, owner and last checked date; bulk assignment
+only.
+Case workspace /cases/{id}
+Claim, related posts, spread, evidence, assessment,
+response, action and history tabs. See next section.
+Narratives /narratives
+Theme clusters, growth, representative redacted
+examples, merge/split and analyst-confirmed labels.
+Alerts /alerts
+Severity, rationale, evidence status, coverage caveat,
+owner, due date, acknowledge and escalation.
+Evidence registry /evidence/sources
+Approved/pending/suspended sources, topic remit,
+permissions, owner, freshness and source approval
+workflow.
+Evidence library /evidence/documents
+Full-text search, versions, page/passage viewer,
+supersession, rights and extraction quality.
+Evidence review /evidence/reviews
+Proposed source/document changes, disagreements and
+expert decisions.
+Every page MUST have functioning backend data, permission checks, pagination where relevant and
+shareable filter state. Empty data is explained; it is not replaced with demonstration metrics outside a
+visibly separate demo mode. Search results must not leak restricted institutions.
+PNSI | Research, product and implementation specification | v1.0
+20
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+18 / CASE WORKFLOW
+Case workspace: the central
+operational page
+The case header displays ID, neutral claim wording, original language, topic, evidence status,
+machine-versus-reviewed label, priority/completeness, owner and last review date. The header remains
+visible as the reviewer moves between tabs.
+Tab
+Contents and actions
+Summary
+Why the case matters, unresolved questions, next task,
+harm rationale and reviewer assignments.
+Conversation
+Redacted mentions, translations, context, duplicates and
+source availability; attach/detach items with a reason.
+Spread
+Observed volume by source/time, baseline, sampling
+limits, available engagement; unknown region bucket.
+Evidence
+Supporting/contradicting/context passages, document
+dates, exact page links, fit and source approval state.
+Assessment
+Structured proposed verdict, uncertainty, reviewer
+correction, disagreement and version comparison.
+Responses
+Channel-specific language variants, citations, review
+checklist, approval state and exact version.
+Actions
+Publication recorded by a person, responsible institution,
+channel, date, approved version and permitted reference.
+Follow-up
+48h/7d/30d observations, coverage comparability, trend
+interpretation and confounders.
+Timeline
+All assignments, model runs, evidence changes, reviews,
+approvals and actions with actor and timestamp.
+Primary actions follow role and state: assign reviewer, request verification, accept/revise assessment,
+create draft, request approval, approve exact version, record action or reopen. Disabled actions include
+a reason. Scientific and communication review are distinct checkpoints.
+Resolve concurrency visibly: if another reviewer updates the case, present the difference and ask for
+reload or reconciliation; never silently overwrite. When cited evidence is withdrawn, mark affected
+assessments and drafts stale and require review. A published response may need a recorded correction,
+not deletion of its history.
+PNSI | Research, product and implementation specification | v1.0
+21
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+19 / PAGES
+Page inventory II: responses,
+operations and oversight
+Page / route
+Required content and interactions
+Response studio /responses/{id}
+Rich text with cited evidence, original draft,
+language/script variants, channel limits, translation review
+and version comparison.
+Approval queue /approvals
+Pending scientific/language/institutional checks; reviewer
+assignments; approve, reject or request changes with
+reason.
+Actions /actions
+Recorded communications, channels, institution, date,
+exact approved content and follow-up status.
+Impact /impact
+Comparable before/after windows, observed conversation
+measures, coverage changes, external indicators and
+caveats.
+Reports /reports
+Daily crisis, weekly routine, monthly strategy; preview,
+approved export and snapshot history.
+Sources /sources
+Monitoring coverage, access basis, quota, last sync, errors,
+enablement and permission expiry.
+Annotation /annotation
+Original/context, task labels, uncertainty, independent
+annotators, disagreement resolution and dataset version.
+Model evaluation /evaluation
+Metrics by language/task, frozen datasets, errors,
+calibration, cost/latency and release comparisons.
+Administration /admin
+Institutions, users, roles, taxonomy, reviewed translations,
+alert policies, retention and settings.
+Jobs /operations/jobs
+Queue health, failed tasks, retry/cancel where safe,
+connector errors and quota.
+Audit /audit
+Authorized filtered event search and export, before/after
+versions, request ID and actor.
+Help /help; profile /profile
+Role-specific SOPs, glossary, keyboard help,
+locale/timezone and notification preferences.
+Institutional onboarding creates membership, role and topic scope, not public account sign-up by
+default. A notification panel links to a real alert or task. Search, save, export and approval controls must
+work end to end; do not ship decorative buttons. No public portal is required for the initial scope.
+PNSI | Research, product and implementation specification | v1.0
+22
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+20 / RESPONSE WORKFLOW
+Response generation and human
+sign-off
+Input to drafting: reviewer-confirmed claim assessment, approved evidence passages, intended
+audience, language/script, channel and approved institutional communication guidance. If evidence is
+unresolved, draft an uncertainty-aware explanation or investigation notice instead of asserting a
+correction.
+Draft structure
+Lead with the accurate information in simple language; acknowledge the underlying concern; explain
+the relevant evidence and limits; provide a practical next step agreed by reviewers; include references
+and a checked date. Avoid sensational repetition of a harmful claim, stigmatization, personal medical
+instructions or fabricated official attribution. Channel adaptations can include posts, FAQs, spokesperson
+Q&A; and short video scripts.
+Approval state machine
+Draft -> scientific_review -> language_review -> institutional_review -> approved ->
+action_recorded -> follow_up -> closed. Rejection returns to changes_requested with a reason.
+Individual variants can have different states; approval of French does not approve Arabic or Arabizi. Only
+reviewed current evidence is eligible for an approved factual correction.
+Approval binds response ID, immutable version, language, script, cited assessment version, evidence
+snapshot and approver. Editing any factual wording, translation, citations or assessment invalidates the
+affected approval. The backend enforces this even if a client directly calls the approve endpoint.
+No automatic external publishing in the baseline. Copy/export the approved variant, have the authorized
+person share it, then record what actually occurred. Optional publishing integrations require explicit
+institutional scope, platform access and a separate evaluated implementation. AI-produced text remains
+clearly labeled until reviewed.
+PNSI | Research, product and implementation specification | v1.0
+23
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+21 / EVALUATION OF ACTIONS
+Actions, follow-up and impact
+interpretation
+An action record links to the case, approved response version, institution, responsible person, channel
+and actual publication time. Record whether it was a post, FAQ, press statement, broadcast, local
+engagement or another intervention from the concept note. A planned action is not counted as
+completed.
+Follow-up schedule
+Schedule observations at 48 hours, 7 days and 30 days after the recorded action. Capture a defined
+baseline and post-action window, available mentions, unique collected items, available engagement,
+narrative mix, question volume and estimated expressed emotion. Record sampling, deleted items,
+source outages and changes in search terms.
+Compare only compatible coverage. With a zero or very small baseline, avoid unstable percentage
+changes and show absolute counts. Display reported region only when reliable; do not infer personal
+residence or health status. The dashboard describes measured conversation changes, not population
+behavior.
+External indicators
+Partner-provided vaccination, consultation or hotline aggregates may be attached if authorized and
+appropriately documented. Keep provenance, period, definition and geography separate from
+social-media metrics. Integration requires an agreed schema and data-sharing arrangement; no national
+health-system API is assumed.
+Before/after changes do not prove causal effects. For stronger evaluation, involve an epidemiologist or
+evaluation specialist and predefine comparison groups or interrupted time-series designs where
+suitable. Note concurrent events, campaigns and collection changes. Record useful lessons and reviewer
+interpretation without claiming that a generated response caused a health outcome.
+PNSI | Research, product and implementation specification | v1.0
+24
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+22 / REPORTING
+Reports, exports and decision briefs
+Provide daily crisis reports, weekly monitoring summaries and monthly strategic reports, reflecting the
+concept note. A report contains scope/period, data coverage, new and unresolved claims, evidence
+status, high-priority cases, reviewed insights, approved responses, recorded actions, follow-up findings
+and limitations.
+Reproducibility
+Store query filters, source set, collection-run cutoffs, metric definitions, model and evidence versions,
+creator, institution and export time. A saved report is a dated snapshot; later source changes must not
+silently alter it. Rebuilds create a new version. Aggregation honors item deletion and retention
+obligations.
+Formats
+PDF for decision makers; CSV/XLSX where authorized for aggregates; JSON for approved
+machine-readable interchange. Escape spreadsheet formula injection in user-derived cells. Export
+templates support French, English and Arabic RTL; Derja summaries require language review. Preserve
+citation links and source-version references without exporting personal identifiers.
+Decision brief: one-page concern summary, observed trajectory, public-health risk rationale, what is
+known/unknown, action options, responsible team and next review time. AI proposes text; assigned
+experts approve scientific and institutional content. Report recipients and notification channels are
+configured by the institution, not inferred from a project name.
+Useful KPIs include reviewed-case turnaround, open backlog, evidence freshness, approved-response
+time, source availability and percentage of machine proposals corrected by reviewers. Do not equate
+“number of false claims detected” with system quality without measuring errors and sampling limits.
+PNSI | Research, product and implementation specification | v1.0
+25
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+23 / DATA GOVERNANCE
+Privacy, data residency and the
+actor-map conflict
+The concept note requires no retained personal identifiers, while also requesting maps of accounts,
+influencers and propagation networks. These are not automatically compatible. Pseudonymized IDs and
+searchable text can still allow identification. Removing a username does not establish anonymity.
+Baseline design choice
+Use aggregate narrative/source maps and organization-level publisher information where approved. Do
+not build individual influencer profiles or personal health inference in the initial release. Redact names,
+handles, phone numbers, email addresses and sensitive identifiers from working examples; minimize
+original text storage and review residual identification risk.
+Two provenance options require institutional resolution: (A) strict minimization, retaining
+source/document identity without personal post links; or (B) a restricted provenance vault for authorized
+traceability, with defined lawful basis, retention and access audit. Option B departs from a literal “no
+identifiers retained” policy and cannot be enabled merely for convenience. Use A as the default until this
+is resolved.
+Residency and retention
+Production data hosting in Tunisia is a requirement in the note. External model, OCR, logging or email
+services may transfer data even if the database is local. Use local processing by default for sensitive
+material; external processing requires a recorded institutional decision. This document does not certify
+legal compliance.
+Proposed starting retention: raw ingestion buffers <=24h; redacted working items <=90 days; evidence
+according to rights/currentness; action/audit history according to institutional policy. These values are
+provisional. Deletions must cover storage, caches, embeddings, examples and recoverable backups
+according to the approved policy. WHO ethics guidance is a relevant framework [R1], not a substitute for
+local review.
+PNSI | Research, product and implementation specification | v1.0
+26
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+24 / SECURITY
+Security controls and misuse
+resistance
+Boundary
+Required control
+Accounts
+Institutional OIDC or secure approved auth; MFA for
+privileged roles; session expiry and revocation.
+API
+Object-level scoped authorization, CSRF protection where
+cookies are used, origin controls, rate limits and input
+validation.
+Uploads
+Size/type limits, malware scan, isolated parsing,
+archive-bomb protection and private storage.
+Source fetching
+Allowlisted hosts/path scopes, redirect validation, SSRF
+protection, timeouts and no private-network fetching.
+Secrets
+Server-side secret store/env injection; no browser bundle,
+repository, PDF, logs or exported credentials.
+Data
+TLS in transit, encryption at rest, least privilege, scoped
+signed downloads and audited access.
+AI
+Treat posts and documents as untrusted content; no
+execution of embedded instructions or unrestricted tools.
+Operations
+Dependency scanning, patch schedule, tested backup
+restore and incident response.
+Prompt injection can arrive in a rumor, website or PDF. Retrieval content cannot change the system’s
+workflow, source approvals or permission checks. Limit model output to validated schemas; do not
+execute generated SQL or commands. Block citations that do not resolve to stored evidence IDs. Model
+tools may fetch only registered evidence/source scopes.
+Audit sensitive access, exports, source changes, role changes, reviews and approvals. Redact logs and
+model traces. Review denial-of-service and job-cost limits. A breached or revoked source is disabled
+without erasing evidence of prior decisions. Threat modeling and privacy review are release tasks, not a
+promise that all risk is eliminated.
+PNSI | Research, product and implementation specification | v1.0
+27
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+25 / AI
+AI implementation and
+model-selection strategy
+Use separate tasks with typed outputs: health-topic relevance, language spans, assertion/question
+stance, atomic claim extraction, semantic matching, narrative clustering, evidence retrieval/reranking,
+assessment proposal and grounded response drafting. Start with evaluated pretrained components; do
+not assume custom training is necessary for every task.
+Benchmark before selection
+Candidate local models must be tested on Tunisian Derja, Arabizi, Arabic, French and English. Compare
+against a simple keyword/lexical baseline and an approved hosted model only if policy permits. Record
+license, hardware needs, per-task quality, abstention, latency, inference cost and language errors. No
+named model is declared best without this benchmark.
+RAG flow: approved corpus -> versioned passages -> multilingual keyword/vector retrieval -> reranking
+-> evidence-fit checks -> constrained assessment with passage IDs -> expert review. Embedding
+similarity finds related text; it does not verify a claim. A language model should not act as the sole
+source of truth.
+Structured output and failure modes
+Assessment output includes claim ID, proposed status, rationale, supporting/contradicting passage IDs,
+missing evidence, context limitations and model-run ID. Validate JSON with typed schemas and bounded
+retries; unresolved parse/grounding failures produce “review required”. Set generation budgets and
+maximum evidence context sizes.
+Keep prompt templates versioned in code, with controlled release changes. Run model regression
+evaluations when prompts, corpus, embeddings or model weights change. Never train on collected
+platform data unless permission allows it. Reviewer decisions become a versioned annotation dataset
+only under the approved data-handling plan.
+PNSI | Research, product and implementation specification | v1.0
+28
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+26 / VALIDATION
+Evaluation datasets and scientific
+validation
+Create a locally reviewed benchmark with original-language posts, context, atomic claims, stance, topic,
+evidence relevance, proposed status and response-quality judgments. Suggested pilot target: 800-1,500
+annotated items and 150-300 claim-evidence cases, subject to availability and expert capacity. These
+are planning figures, not existing datasets.
+Avoid leakage
+Group near duplicates and equivalent claims before splitting. Keep narrative families and translated
+versions in the same partition; use a later-time holdout for emerging claims. Separate development,
+validation and frozen test sets. Do not tune on the final test set or feed its labels into prompts. Use
+independently reviewed labels and adjudicate disagreement.
+Task
+What to measure
+Topic / stance / claim extraction
+Precision, recall, macro-F1; negation, questions and
+quotation errors.
+Retrieval
+Recall@k, ranking relevance, supporting and contradicting
+evidence discovery.
+Assessment
+Per-status confusion matrix, dangerous false assurance,
+false accusation and abstention coverage.
+Drafting
+Citation validity, passage support, factual errors,
+omissions, tone and language equivalence.
+Clustering
+False merges/splits; same claim vs same topic distinction.
+Operations
+Turnaround, review burden, source uptime, job failure and
+cost per reviewed case.
+Report each metric by language/script, mixed text, topic and content type, with sample size and
+uncertainty. Double annotation on a substantial subset helps assess agreement. Proposed targets must
+be approved by the scientific team; no AUROC or accuracy is claimed in this document.
+Model confidence is displayed only after calibration on suitable held-out data. Maintain human review for
+final assessments even if benchmark results are strong. Regularly review drift caused by new slang,
+campaigns, platform changes and outdated guidance.
+PNSI | Research, product and implementation specification | v1.0
+29
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+27 / TESTING
+Functional tests and release
+evidence
+Test scenario
+Required result
+Missing social API key
+Connector is visibly not configured; remaining sources and
+manual import work.
+Repeated import / retries
+No duplicate mentions or repeated notifications;
+provenance retained.
+Question quoting a rumor
+Not treated as the author promoting a false claim;
+uncertainty preserved.
+Conflicting / absent evidence
+No forced supported/contradicted result and no definitive
+corrective draft.
+Arabic RTL and mixed Arabizi
+Readable layout, intact original meaning, usable forms and
+correct script direction.
+Edit an approved translation
+Affected approval is invalidated; action cannot cite an
+unapproved revision.
+Wrong institution accesses case/export
+Backend returns denied access; no aggregate or download
+leakage.
+Malicious text/PDF instructions
+No permissions, tool actions or evidence approval changed
+by content.
+Source outage / quota hit
+Partial coverage clearly shown; no false zero-volume or
+surge interpretation.
+Deletion / superseded evidence
+Cached content removed as required; impacted decisions
+marked for review.
+Record actual publication
+48h/7d/30d follow-up tasks created once against exact
+approved version.
+Automate meaningful unit tests for score completeness and approval invariants, integration tests for
+database/queue/API boundaries, and browser end-to-end tests for role-based case handling and RTL.
+Test restore, secret redaction and access isolation. Run manual scientific review on representative
+language cases.
+The release report identifies build commit, environment, dependency lockfiles, test datasets,
+passed/failed checks, known limits and sign-off owners. Screenshots alone do not prove functionality; a
+complete persisted workflow and real permitted connector test are required for a live pilot.
+PNSI | Research, product and implementation specification | v1.0
+30
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+28 / RESOURCING
+Resources, staffing and realistic
+costs
+Resource
+Planning assumption / responsibility
+Application pilot host
+Provisional 4-8 vCPU, 16-32 GB RAM, 100-250 GB
+encrypted SSD; CPU workloads and modest corpus only.
+Benchmark before buying.
+Local model inference
+Separate machine or approved shared capacity; GPU need
+depends on model size, quantization, context and
+concurrency. No hardware guarantee.
+Low-resource development
+Laptop + containers + small corpus + manual imports;
+optional models/ASR can be disabled.
+People
+Product/technical lead, web/backend engineer, AI/data
+engineer, scientific reviewer, communication/language
+reviewer and operator. Roles may be combined.
+Institution inputs
+Current evidence, source approvals, taxonomy, reviewer
+availability, hosting/security policy and communication
+guidance.
+Operating costs
+Hosting, storage/backups, inference, paid data access,
+maintenance, annotation and expert review. Software
+being open source does not remove these costs.
+Use a quotation worksheet: monthly fixed hosting + backups + security/monitoring + API reads ×
+current rate + model tokens or compute + staff effort + contingency. Obtain Tunisian hosting and
+service quotations; no unverified TND prices are invented here. At the current X read price, 10,000
+returned posts cost about USD 50 for those reads alone [R6].
+Start text-first; process audiovisual material only when permitted and prioritized. Cache reusable
+evidence, deduplicate mentions and use smaller models for easy routing. Set daily/monthly job and API
+budgets. Funding is an institutional decision; the platform must remain usable with manual import and a
+local evidence corpus when paid integrations are disabled.
+PNSI | Research, product and implementation specification | v1.0
+31
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+29 / OPERATIONS
+Deployment, reliability and support
+Development uses Docker Compose with frontend, API, worker, scheduler, PostgreSQL, Redis and
+private object storage. Provide a one-command documented startup, migrations, a safe synthetic seed
+and health checks. Use separate development, staging and production configurations and credentials.
+Production readiness
+Choose approved Tunisian hosting, TLS/domain, identity provider, storage, logging and backup
+destinations. Document any external egress and inference. Build signed/versioned images in CI; run
+tests and scans; deploy to staging; perform reviewer UAT; deploy the exact approved build with rollback.
+Kubernetes is optional, not a prerequisite.
+Proposed service targets
+For the pilot, aim at 99% monthly availability for the web workspace, p95 <2 seconds for common read
+pages under the measured pilot load, and asynchronous progress for expensive verification. These are
+proposed goals, not contractual SLAs. Define source freshness separately; API collection latency cannot
+exceed vendor permissions or quotas.
+Set provisional recovery objectives of RPO <=24h and RTO <=8h, then validate with the hosting team.
+Perform encrypted backups, integrity checks and a documented restore drill before pilot launch. Record
+uptime, queue depth, retry rates, database growth, source failures, evidence staleness and cost
+consumption.
+Runbooks cover revoked credentials, API change, unavailable evidence, broken ingestion, incorrect
+approved response, suspected breach, backup recovery and rollback. Assign business-hours/on-call
+coverage explicitly. The note’s continuous monitoring ambition cannot imply 24/7 human response
+unless staffing and funding support it.
+PNSI | Research, product and implementation specification | v1.0
+32
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+30 / DELIVERY
+Delivery roadmap and gated
+milestones
+Milestone
+Exit evidence
+M0: discovery and governance
+Approved source/evidence registry plan, privacy choice,
+taxonomy, roles, acceptance criteria and hosting
+constraints.
+M1: product foundation
+Localized dedicated interface; authentication, database,
+scoped roles and persistent case workflow.
+M2: first complete vertical slice
+Permitted import/RSS -> claim -> evidence -> expert
+assessment -> draft -> approval -> recorded action.
+M3: monitored pilot
+Approved live sources, source-health view, alerts,
+multilingual evaluation and trained reviewers.
+M4: operational stabilization
+Reliable reports, 48h/7d/30d follow-up, restore drill, audit
+and measured workflow quality.
+M5: selective expansion
+Only qualified APIs, audiovisual features, Italian and
+epidemiological integration after separate gates.
+Proposed engineering sequence: weeks 1-4 discovery; weeks 5-8 foundation and vertical slice; weeks
+9-12 retrieval/review/drafting; weeks 13-16 pilot, reporting and hardening. This assumes a staffed team
+and timely inputs; it is not a promise for one student to deliver a national system in four months.
+The concept note labels a 12-month pilot, but its phase durations total 10-14 months if sequential.
+Resolve this by overlap or a revised schedule. A feasible national service plan may span 12 months:
+months 1-2 cadrage; 3-5 core build; 6-9 operational pilot; 10-12 consolidation. Institutional decisions and
+access approvals may shift dates.
+Every milestone produces a reviewable build, documentation, tested workflows and known limitations. A
+polished ministry demo can use synthetic data, but must label it and remain distinct from the live pilot.
+Do not advertise unavailable connectors as delivered.
+PNSI | Research, product and implementation specification | v1.0
+33
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+31 / DECISIONS
+Unresolved decisions and risk
+register
+Decision / risk
+Proposed treatment and owner
+Access to dominant social platforms
+Partner/source steward confirms eligibility and
+permissions; baseline remains narrower and transparent.
+No identifiers vs actor mapping
+Privacy lead chooses strict aggregate baseline or approved
+restricted provenance; individual maps deferred.
+Local hosting vs hosted AI
+Security/institutional lead approves processing locations
+and egress before sending data.
+Current local clinical/regulatory sources
+Scientific lead provides current documents and authentic
+publication channels.
+Derja UI and clinical terminology
+Local language reviewer approves terminology, script
+choice and translations.
+Scoring and thresholds
+Scientific/operational leads validate against annotated
+cases and reviewer capacity.
+Staffing and outsourcing
+ONMNE confirms ownership, response coverage and
+whether the provider model applies.
+Automatic publishing
+Not required; manual publication baseline. Separate
+approval/integration if later requested.
+Representativeness and causality
+Show coverage limits; involve evaluation specialists for
+population or impact claims.
+Institutional branding
+Use neutral proposal styling; logos and endorsement
+wording only with authorization.
+Maintain a living decision log with ID, issue, owner, due date, chosen option, evidence and affected
+requirement IDs. Codex may implement reversible technical defaults, but must not invent source
+permissions, scientific verdicts, institutional authority or API keys.
+Critical risk controls are incorporated into the product: incomplete coverage warnings, evidence
+abstention, source freshness, human approval, original-language views, auditability and budget caps.
+Review them as operational behavior rather than burying them in a disclaimer.
+PNSI | Research, product and implementation specification | v1.0
+34
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+32 / CONFIGURATION
+Configuration and API-key
+placeholders
+Provide .env.example containing names and safe placeholders only. Actual values are supplied by Nour
+or the institution through local ignored files or a deployment secret manager. Every provider adapter
+reads server-side configuration. Missing optional credentials disable that connector without breaking the
+core workflow.
+Variable group
+Suggested names / notes
+Core
+APP_ENV, APP_BASE_URL, DEFAULT_LOCALE=fr,
+DEFAULT_TIMEZONE=Africa/Tunis, DATABASE_URL,
+REDIS_URL
+Identity
+OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET;
+development auth guarded by environment.
+Storage
+S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY,
+S3_SECRET_KEY; locally hosted production endpoint.
+AI
+AI_PROVIDER=local|approved_remote, AI_BASE_URL,
+AI_API_KEY, EXTRACTION_MODEL, DRAFT_MODEL,
+EMBEDDING_MODEL, RERANKER_MODEL
+Evidence discovery
+NCBI_EMAIL, NCBI_TOOL, NCBI_API_KEY optional;
+SEARCH_PROVIDER and SEARCH_API_KEY only if
+chosen/approved.
+Optional collection
+YOUTUBE_API_KEY, X_BEARER_TOKEN,
+REDDIT_CLIENT_ID/SECRET; approval is required
+separately from credentials.
+Public/instance services
+BLUESKY_BASE_URL, MASTODON_INSTANCE_URL/TOKEN;
+access policy still applies.
+Governance
+EXTERNAL_AI_ENABLED=false,
+AUTO_PUBLISH_ENABLED=false, RAW_RETENTION_HOURS,
+REDACTED_RETENTION_DAYS, DAILY_BUDGET
+Notifications
+SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD,
+ALERT_FROM; enable only for authorized recipients.
+Meta research access does not become usable by setting a generic token. Implement its adapter only
+after permitted execution/export rules are established. TikTok and Telegram credentials are not
+assumed. Document scopes, renewal, revocation and quota checks for each activated service.
+Validate configuration at startup; redact secret values in diagnostics. Never request that real keys be
+pasted into the PDF, committed to Git or placed in NEXT_PUBLIC variables. Provide explicit
+“configuration required” states and a separate synthetic demo mode.
+PNSI | Research, product and implementation specification | v1.0
+35
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+33 / CODEX / COPY THIS BRIEF
+Codex master build instruction
+Use this section as the initial coding brief with the complete PDF attached. Build PNSI, a
+production-oriented internal Tunisian health social-listening and infodemic-management application.
+Implement a dedicated Next.js/React/TypeScript frontend and FastAPI backend, PostgreSQL, private
+object storage and asynchronous workers. Do not use Streamlit as the product interface.
+First inspect the existing repository and AGENTS.md. Preserve unrelated work, use an isolated branch
+when appropriate, and document what already exists. Treat this PDF as the product specification.
+Implement in vertical slices and complete meaningful tests before broadening scope. Use maintained
+compatible packages, lockfiles, migrations and typed API clients.
+Implement all page families in sections 17-19, the case workflow in section 18, roles in section 3 and
+approval invariants in sections 20 and 35. All page controls must connect to real persisted backend
+behavior. Provide French, English, standard Arabic and reviewed Derja localization infrastructure;
+support Arabic RTL, Arabic-script Derja, Latin-script Arabizi and mixed content. If translations are
+provisional, mark them for review; do not claim full localization until checked.
+Start with authorized imports and a permitted RSS connector plus a reviewed evidence corpus. Add
+optional connector interfaces, honest disconnected states and .env.example. Never invent API keys,
+access permissions, data, citations, official endorsements or successful deployments. Seeded data is
+visibly synthetic and isolated from live data.
+Implement claim extraction, evidence retrieval, reviewer assessment, grounded multilingual drafts,
+exact-version approval, manually recorded publication, follow-up and reporting. Preserve
+uncertain/conflicting outcomes. Use provider adapters and local-processing defaults; never use model
+confidence as a truth score. External AI and public publishing stay disabled unless explicitly authorized.
+Enforce backend object authorization, source approvals, document versions, redaction, source-health
+reporting and deletion propagation. Audit all material changes. Add tested loading/empty/error/partial
+states. Build the navy/teal/white institutional design from section 16, with keyboard accessibility and
+RTL verification.
+For each delivery: report implemented requirements, commands run and results, scientific/translation
+review still needed, blocked connectors and exact configuration steps. Do not claim production
+readiness from a UI demo. Stop only for a genuine missing decision or access dependency while
+continuing independent authorized work. Finish with a reproducible local build, tests, screenshots, docs
+and a candid readiness report.
+PNSI | Research, product and implementation specification | v1.0
+36
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+34 / CODEX / IMPLEMENTATION PLAN
+Codex tasks, repository layout and
+deliverables
+Build order
+Deliverable and acceptance
+1. Repository foundation
+apps/web, apps/api, workers, shared schemas,
+infra/compose, docs, tests; lockfiles, lint/typecheck and
+safe .env.example.
+2. Identity and data
+Migrations for institutions, membership, source, content,
+claim, evidence and versioned review/action records;
+scoped API tests.
+3. Complete case slice
+Import -> claim -> evidence -> reviewer decision -> draft
+-> approval -> action; persists across reload and worker
+restart.
+4. Language/UI system
+Locale dictionaries, Arabic RTL, Derja/Arabizi handling,
+original/translation views and tested navigation.
+5. Collection and evidence
+RSS/import baseline, registry approvals, source-health
+states, document extraction and traceable retrieval.
+6. AI adapters
+Validated structured output; grounding; abstention; local
+and optional remote provider boundaries.
+7. Decision tools
+Narratives, priority explanation, alerts, response studio
+and separate approval queue.
+8. Follow-up/reporting
+Action schedule, comparable metrics, PDF/CSV exports and
+frozen snapshots.
+9. Hardening and handover
+End-to-end/access tests, backup restore, release
+evaluation, ministry demo and operator SOPs.
+Suggested docs: README.md for startup; docs/architecture.md; docs/api-contract.md;
+docs/source-registry.md; docs/evidence-policy.md; docs/localization.md; docs/security.md;
+docs/deployment.md; docs/evaluation.md; docs/user-sops.md; docs/decisions.md; docs/readiness.md.
+Keep prompt templates versioned under an AI module; keep migration files in source control.
+CI should run formatting/lint, frontend type checks, backend unit/integration tests, migration checks,
+build and critical browser workflows. Provide a deterministic synthetic seed with at least supported,
+contradicted, misleading, insufficient and conflicting cases; no mock medical verdict is represented as a
+real assessment.
+PNSI | Research, product and implementation specification | v1.0
+37
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+35 / CONTRACTS
+Machine-readable contracts and
+workflow invariants
+Translate these field contracts into typed backend models and a generated frontend client. UUIDs are
+server generated; enum values are stable; timestamps use ISO 8601 UTC; text length and upload limits
+are explicit. Store unknown values as null with a missingness reason, not a guessed value.
+Object
+Required contract
+Claim
+id, institution_id, original_text, neutral_text,
+language_spans[], topic_ids[], claim_type, case_id,
+created_at, version.
+Assessment
+id, claim_id, proposed_status, review_status,
+evidence_links[], rationale, limitations[], model_run_id,
+reviewer_id/null, reviewed_at/null, version.
+Evidence link
+passage_id, document_version_id,
+relation=supports|contradicts|context, relevance_reason,
+applicability, source_approval_id.
+Response variant
+id, case_id, assessment_version_id, locale,
+script=arabic|latin, channel, body, citation_ids[], state,
+version.
+Approval
+id, response_variant_id, exact_version,
+assessment_version_id, evidence_snapshot_hash,
+approver_id, role, timestamp.
+Action
+id, approved_variant_version, institution_id, channel,
+performed_at, actor_id, permitted_reference/null,
+follow_up_plan.
+Priority
+value/null, harm, growth, engagement, exposure_proxy,
+component_missingness, completeness, policy_version,
+rationale.
+Invariant 1: an approval cannot refer to a draft or superseded assessment. Invariant 2: factual edits
+create a new response version and invalidate its approval. Invariant 3: evidence IDs must resolve to
+approved document versions. Invariant 4: an action references an approved exact version, never only
+a mutable response ID.
+Invariant 5: source deletion and institution authorization apply to search/index/export paths. Invariant
+6: uncertain assessments cannot generate a definitive falsehood correction. Invariant 7: missing keys
+or failed jobs cannot silently substitute synthetic data. Invariant 8: follow-up scheduling and retry
+operations are idempotent. Enforce these rules transactionally in domain services and test direct API
+calls.
+PNSI | Research, product and implementation specification | v1.0
+38
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+36 / ACCEPTANCE
+Definition of done and acceptance
+checklist
+Release area
+Evidence needed to call it complete
+Product
+All required routes implemented; every control works; no
+placeholder action presented as real.
+Data
+At least one permitted real connector and authorized
+imports; honest coverage/freshness; persistence and
+idempotency.
+Verification
+Approved corpus; traceable passages;
+contradictory/absent evidence handled; scientific reviewer
+workflow.
+Language
+French/English/Arabic/Derja UI reviewed; Arabizi and
+mixed-content processing evaluated; RTL pages and
+exports checked.
+Responses
+Grounded drafts; separate language approval;
+exact-version enforcement and manual action recording.
+Oversight
+Scoped institution access, audit, role tests, data-handling
+decision and deletion process.
+Follow-up
+48h/7d/30d schedule; valid denominators; comparable
+coverage; no unsupported causal claim.
+Operations
+Reproducible deployment, secrets isolation, health checks,
+monitoring, tested restore and documented rollback.
+Evaluation
+Frozen benchmark, language/task metrics, errors, sample
+sizes and approved release thresholds.
+Handover
+SOPs, training, source/evidence owners, configuration
+instructions, readiness and limitation report.
+Distinguish three statuses: demonstration-ready = polished labeled synthetic end-to-end experience;
+pilot-ready = authorized live data, reviewed corpus, evaluated models, working workflows and trained
+users; production-ready = institutional sign-off, funded operations, approved hosting/security/privacy
+and tested recovery.
+Before ministry presentation, verify that screenshots and live demo match the actual build. Prepare a
+five-minute complete case walkthrough, a multilingual/RTL demonstration and a source-outage scenario.
+Explain what works, what awaits keys/permissions and what still needs scientific evaluation. Neither this
+specification nor a generated codebase can guarantee perfect medical accuracy.
+PNSI | Research, product and implementation specification | v1.0
+39
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+37 / SCENARIO
+Worked example: one claim from
+detection to follow-up
+Illustrative scenario only. An analyst imports several permitted public messages claiming “Product Z
+prevents illness Y”. Product Z and illness Y are synthetic placeholders; no medical conclusion is asserted
+here.
+Step
+What the platform does
+Collect
+Records source, date, import rights and redacted text;
+marks manually imported coverage.
+Understand
+Separates “Does Z work?” from “Z definitely prevents Y”;
+extracts the prevention claim without losing negation.
+Group
+Links equivalent assertions across French, Arabic and
+Arabizi; preserves stance and original-language mentions.
+Triage
+Reviewer assesses potential harm; growth/engagement
+may be unknown, so priority completeness is visible.
+Retrieve
+Searches approved sources for Z/Y and prevention context;
+shows documents, dates and relevant passages.
+Assess
+No adequate document -> insufficient evidence. Relevant
+contradiction -> proposed contradicted status pending
+expert confirmation.
+Draft
+Creates language variants from the reviewed outcome. If
+unclear, explains uncertainty rather than inventing a
+correction.
+Approve
+Scientific reviewer checks citations; language reviewer
+checks meaning; institutional approver signs exact
+versions.
+Act
+Authorized person posts externally and records
+channel/time/version; no automatic publication.
+Observe
+At 48h/7d/30d, reports collected conversation change and
+coverage limits; no causal or population claim.
+Expected UI behavior: the same case contains all original mentions, decisions and versions. A revised
+translation returns to review. A withdrawn evidence document reopens the assessment. A connector
+outage leaves the case accessible but marks new trend data partial. The example can be implemented
+as a deterministic test/demo fixture.
+PNSI | Research, product and implementation specification | v1.0
+40
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+38 / REFERENCES
+Research references I: evidence and
+public health
+Access checked 11 October 2026 unless stated otherwise. Source links support specific facts; proposed
+system choices, weights and targets are the author’s design recommendations. The source concept note
+is the user-supplied PNSI document, sections 1-11.
+[R1] WHO social-listening ethics guidance
+WHO: Social listening in infodemic management for public health emergencies - guidance on ethical
+considerations. Used as the ethical framing for public-health listening; not a claim of local legal
+compliance.
+[R2] ONMNE publication entry point
+ONMNE official site lists publications, thematic dossiers and institutional information. The homepage
+includes dated material; individually verify current documents and exclude unrelated or suspect content.
+[R10] DPM role and mission
+Direction de la Pharmacie et du Médicament: rôle et mission. Search surfaced the institutional mission
+page. Homepage fetch failed. Confirm current regulatory issuer, publication channels and documents
+directly before activating the source.
+[R11] WHO guideline catalog
+WHO guidelines is a starting point for selecting topic-relevant current recommendations, not a blanket
+domain truth guarantee.
+[R12] NCBI discovery and usage guidance
+A General Introduction to the E-utilities. NCBI documents retrieval and usage limits; without a key, the
+default is 3 requests/second, with a key generally 10. Discover records, then appraise documents and
+respect full-text rights.
+Candidate local sources awaiting confirmation: Ministry publication portal (santetunisie.rns.tn), INEAS
+(ineas.tn) and INSP publication channels. Failed retrieval is documented, not interpreted as proof that
+the institution or source does not exist. No public API is asserted for these institutions.
+PNSI | Research, product and implementation specification | v1.0
+41
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+39 / REFERENCES
+Research references II: APIs and
+engineering
+API policies and prices can change. Recheck official documentation and account-specific terms before
+enabling collection. Meta SRE execution and export limitations must be reviewed separately from access
+pricing.
+Ref
+Official source and supported point
+R3
+developers.google.com/youtube/v3/getting-started - official quota-limited Data API. Current English page
+separates 100 search calls/day from 10,000 units/day for other endpoints; verify project quota.
+R4
+docs.bsky.app/docs/advanced-guides/api-directory - public Bluesky AppView endpoints; this does not establish
+Tunisian relevance.
+R5
+docs.joinmastodon.org/methods/timelines - public timeline API; instance authentication/policy can restrict
+access.
+R6
+docs.x.com/x-api/getting-started/pricing - pay-per-use; post reads currently $0.005 each, subject to change.
+R7
+support.reddithelp.com/hc/en-us/articles/42728983564564-Responsible-Builder-Policy - explicit API approval
+and RFR research access; updated 5 October 2026.
+R8
+developers.facebook.com/docs/content-library-and-api/get-access - no access/compute fees for interface and
+Meta SRE API; eligibility/approval required.
+R9
+transparency.meta.com/researchtools/meta-content-library - research archive access; not a general open
+social-data API.
+R13
+nextjs.org/docs/app/guides/internationalization - routing/rendering of localized content.
+R14
+fastapi.tiangolo.com/deployment/docker - container deployment guidance.
+These references justify access constraints and the available engineering foundations. They do not
+establish that this specific project is eligible, licensed, operational or performance-validated.
+Website/RSS reuse, Telegram and TikTok integration remain source-specific research tasks.
+PNSI | Research, product and implementation specification | v1.0
+42
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+40 / SOURCE ALIGNMENT
+Traceability to the supplied concept
+note
+Concept note requirement
+Implementation section / treatment
+National social listening and six layers (3-5)
+Sections 4, 6-7, 9-11, 13 and 17-22 translate the full
+operational chain.
+Facebook/TikTok/Instagram/X/etc. (5.2)
+Section 6 access matrix; gated connectors rather than
+promised unrestricted coverage.
+Languages and Arabizi (5.2-5.3)
+Section 12; Italian planned extension; user-required Derja
+included.
+OCR/ASR (5.3)
+Sections 9 and 25; optional permitted media processing,
+separately evaluated.
+Rumors, narratives and emotions (5.4)
+Sections 10-11 and 25-26; model proposals distinct from
+expert verdicts.
+Actor maps + anonymity (5.2/5.4/6)
+Section 23 resolves conflict through aggregate baseline
+and a documented decision.
+Temperature index, dashboards/reports (5.5)
+Sections 11 and 16-22; experimental index, visible
+components and coverage.
+Alerts and reviewed responses (5.6)
+Sections 11, 18-20, 27 and 35; exact-version approval and
+abstention.
+48h/7d/30d actions and impact (5.7)
+Sections 21-22 and 37; trends distinguished from causal
+effects.
+Multi-institution / local hosting (6)
+Sections 3, 13-15, 23-24 and 29.
+12-month phasing, training/staffing (7-9)
+Sections 28-31 and 34; training/SOP ownership and
+timeline arithmetic addressed.
+Future epidemiological integration (10)
+Section 21; authorized aggregate schema only, no
+assumed national-system API.
+Critical additions beyond the note: curated document-level evidence governance, claim
+verification/abstention, access feasibility, honest metric denominators, language evaluation,
+transactional approval invariants, code contracts, operational tests and implementation instructions.
+These additions make the concept actionable without claiming that unresolved permissions or scientific
+validation are already complete.
+PNSI | Research, product and implementation specification | v1.0
+43
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+41 / HANDOVER
+Glossary and handover package
+Term
+Practical meaning
+Infodemic
+Overabundance of information, including accurate and
+inaccurate content, that complicates health understanding
+and action.
+Social listening
+Systematic analysis of available conversations, questions
+and concerns within explicitly defined sources.
+Claim / narrative
+A checkable assertion / a broader repeated story or theme
+containing one or more claims.
+Rumor / misinformation
+An unverified circulating claim / false or misleading
+information; rumor is not itself a false verdict.
+Evidence whitelist
+Approved source/document registry with scope,
+currentness, permissions and scientific review.
+RAG
+Retrieval-augmented generation: evidence retrieval
+followed by constrained model output; requires evaluation
+and review.
+Derja / Arabizi
+Tunisian dialect / Latin-letter-and-number writing
+conventions, often mixed with French or Arabic.
+RTL
+Right-to-left layout for Arabic-script content; not the
+direction of Latin-script Arabizi.
+Provenance
+Traceable origin, version, extraction and decision history of
+a record.
+Abstention
+Explicitly declining a verdict when evidence or model
+reliability is insufficient.
+Coverage
+What sources, periods, queries and languages were
+actually collected; not the whole public conversation.
+What must accompany the implemented platform
+A working repository, dependency lockfiles, migrations, safe configuration examples, tested deployment
+instructions, source registry, reviewed evidence corpus, localization glossary, dataset/evaluation cards,
+access/retention policy, reviewer SOPs, training materials, backup/incident runbooks and a readiness
+report.
+This PDF is the master planning and coding reference. It contains no real API credentials, real clinical
+verdicts, deployment guarantees or unapproved institutional branding. The next implementation step is
+to give Codex this document and the repository, begin with section 33, and deliver the tested vertical
+slice before expanding to gated data sources.
+PNSI | Research, product and implementation specification | v1.0
+44
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+42 / APPENDIX / TAXONOMY
+Appendix A: taxonomy and
+multilingual query design
+Keep the full health scope, while limiting the first monitored themes according to partner priorities and
+evidence availability. Each topic has a stable ID, parent category, multilingual names, synonyms,
+excluded meanings, approved seed queries, responsible reviewer and version.
+Topic family
+Examples of subtopics
+Prevention and vaccination
+Vaccine safety, schedules, eligibility, prevention measures
+and community questions.
+Infectious disease
+Respiratory/vector-borne illness, outbreaks, symptoms,
+transmission and testing.
+Chronic conditions
+Diabetes, cardiovascular conditions, cancer, kidney
+disease and long-term care.
+Medicines and treatments
+Safety alerts, availability claims, dosing claims, counterfeit
+concerns and alleged cures.
+Mental/reproductive health
+Stigma, access, prevention, maternal/child health and
+information gaps.
+Nutrition and environment
+Supplements, food safety, heat, pollution and
+environmental health concerns.
+Services and trust
+Care access, institutional communication, complaints,
+questions and legitimate criticism.
+Query construction combines a health concept with optional local context, spelling/script variants and
+narrative terms. A French seed such as “vaccin effets secondaires Tunisie” is only an example of a
+search, not a medical claim. Tunisian clinicians and language reviewers must supply Arabic/Derja/Arabizi
+equivalents and disambiguation rules; do not assume one machine translation captures all variants.
+Maintain a reviewed term dictionary including common transliterations, product generic/brand names
+where relevant, code-switch phrases and negative keyword rules. Test each query on labeled samples
+for relevance and missed concerns. Do not require the word “Tunisia” in every post: local publisher
+context can establish relevance, while dialect alone cannot establish residence.
+Version query changes and annotate affected charts. Source expansion and keyword changes can
+increase counts without a true conversation surge. Preserve query ID and version on each collection run.
+PNSI | Research, product and implementation specification | v1.0
+45
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+43 / APPENDIX / MULTIMEDIA
+Appendix B: permitted image and
+audio processing
+Audiovisual capability is part of the national ambition, but API metadata access does not automatically
+grant permission to download videos or audio. Enable processing only for authorized media from allowed
+sources or institutional uploads. Prioritize relevant items rather than processing every file.
+Processing steps
+Validate type/size and scan; place in private temporary storage; extract permitted audio; detect
+language segments; transcribe speech with timestamps and uncertainty; sample relevant frames; run
+OCR on text regions; combine aligned text without inventing unseen content; redact identifiers; link
+derived claims to exact time/frame/page; delete temporary media according to rights and retention.
+Separate component evaluation
+Compare transcription and OCR candidates on Tunisian speech, noise, accents, code-switching and
+low-resolution overlays. Measure word/character errors plus medically important omissions: negation,
+numbers, units, product names and the speaker’s stance. Good overall transcription accuracy can still
+miss a critical “not”.
+Let analysts correct transcripts and inspect permitted time segments. Store the original derived
+transcript, corrected version, extraction model/version and confidence limits. Low-quality material is
+queued for manual review; missing audio or unreadable text yields unavailable/uncertain rather than an
+invented transcript.
+Keep OCR/ASR as optional asynchronous worker modules with independent resource budgets. A
+text-first pilot is fully usable without them. Do not label a video verified solely from its title, thumbnail or
+comments; make the scope of the actual reviewed material explicit.
+PNSI | Research, product and implementation specification | v1.0
+46
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+44 / APPENDIX / REGISTRY
+Appendix C: evidence registry
+starter template
+Codex should implement these as database-backed forms and exportable structured records, not a
+hard-coded domain list. The seed remains pending until a named scientific reviewer approves the exact
+scope and documents.
+Field
+Example starter value
+registry_id / organization
+EVID-ONMNE-001 / ONMNE
+canonical_host / allowed_paths
+www.onmne.tn / explicit reviewed publication paths to be
+supplied
+purpose / jurisdiction
+Local surveillance and public-health guidance / Tunisia
+allowed_document_types
+Official circulars, thematic guidance, dated institutional
+publications
+topics / languages
+Partner-selected pilot topics / language detected per
+document
+authority_scope
+Only statements within the issuer’s remit; no blanket
+medical authority
+approval_state / approver
+pending / assigned institution scientific reviewer
+rights / collection_method
+to confirm / authorized upload or permitted page retrieval
+review_interval / expiry
+Proposed 90-day source review; urgent documents
+checked more often
+document_id / version
+Generated per approved document; immutable checksum
+and dates
+withdrawal_policy
+Suspend outdated material; mark affected assessments for
+review
+Document approval form asks: Is the issuer authentic? Is this an official document? Is it in scope? Is the
+edition current? Is the full relevant passage available? Are reuse/storage allowed? Does the population
+and jurisdiction fit? Are limitations or contradictions recorded? If unresolved, keep pending.
+Bootstrap workflow: request documents from partners -> register candidates -> verify authenticity and
+rights -> scientific scope review -> document ingestion -> sampled extraction QA -> index -> test
+retrieval on reviewed claims -> activate for proposals. A WHO or ONMNE name in a URL or document
+title alone is insufficient.
+PNSI | Research, product and implementation specification | v1.0
+47
+DESIGN PROPOSAL - SUBJECT TO INSTITUTIONAL REVIEW
+45 / APPENDIX / SOP
+Appendix D: daily operating
+procedures
+Procedure
+Owner and minimum steps
+Morning source check
+Operator checks last success, outages, quotas and deletion
+jobs; analyst sees coverage changes before interpreting
+trends.
+Triage
+Analyst reviews new cases/questions, validates groups,
+assesses potential harm, assigns owners and due times.
+Verification
+Scientific reviewer inspects claim context and passages,
+considers contradictory evidence, confirms status or
+requests investigation.
+Draft review
+Communication/language reviewers check evidence
+alignment, tone, translation equivalence and approved
+channel guidance.
+Institutional approval
+Authorized approver accepts exact version or requests
+changes; edits restart affected checks.
+Publication recording
+Responsible person records actual channel/time/version;
+system creates follow-up tasks once.
+Urgent escalation
+High potential harm is routed to a designated institution
+contact; platform notifications require configured
+recipients.
+Evidence maintenance
+Source steward checks urgent updates and supersession;
+impacted assessments are reopened.
+Weekly learning
+Team reviews mistakes, unresolved cases, language
+errors, coverage gaps and action observations.
+Monthly oversight
+Review release quality, operating cost, source permissions,
+retention, training and policy changes.
+Training uses synthetic complete cases before live access: one contradicted claim, one unresolved
+claim, one question, one legitimate complaint and one mixed-language example. Reviewers practice
+citation checks, approval invalidation, correction after publication and interpreting source outages.
+Handover must name actual owners, backups and escalation windows. Do not infer 24/7 staffing, notify
+people automatically or invent institutional recipients. A national service requires sustained scientific
+and operational capacity in addition to the software.
+PNSI | Research, product and implementation specification | v1.0
+48

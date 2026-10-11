@@ -1,0 +1,85 @@
+# Evidence registry. See corpus/README.md.
+# The entries below are carried over from the V3 list (legacy/v3/data/whitelist_urls.json).
+# They are real public URLs, but titles, dates and content have NOT been checked yet.
+# Each one must be opened, verified and completed by the corpus-builder procedure before approval.
+
+- id: who-infodemic-topic
+  issuer: WHO
+  title: null
+  url: "https://www.who.int/health-topics/infodemic"
+  language: en
+  topics: [infodemic]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: who-infodemic-insights-6-steps
+  issuer: WHO
+  title: null
+  url: "https://www.who.int/publications/i/item/9789240075658"
+  language: en
+  topics: [infodemic, methods]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: who-measles-factsheet-en
+  issuer: WHO
+  title: null
+  url: "https://www.who.int/news-room/fact-sheets/detail/measles"
+  language: en
+  topics: [vaccination, rougeole]
+  approval: pending
+  note: "from V3 list, verify; also find the French and Arabic versions"
+
+- id: who-one-health-factsheet
+  issuer: WHO
+  title: null
+  url: "https://www.who.int/news-room/fact-sheets/detail/one-health"
+  language: en
+  topics: [one-health]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: cdc-measles-about
+  issuer: CDC
+  title: null
+  url: "https://www.cdc.gov/measles/about/"
+  language: en
+  topics: [rougeole]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: cdc-measles-symptoms
+  issuer: CDC
+  title: null
+  url: "https://www.cdc.gov/measles/signs-symptoms/index.html"
+  language: en
+  topics: [rougeole]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: cdc-vaccine-basics
+  issuer: CDC
+  title: null
+  url: "https://www.cdc.gov/vaccines/basics/index.html"
+  language: en
+  topics: [vaccination]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: cdc-vaccine-side-effects
+  issuer: CDC
+  title: null
+  url: "https://www.cdc.gov/vaccines/basics/possible-side-effects.html"
+  language: en
+  topics: [vaccination]
+  approval: pending
+  note: "from V3 list, verify"
+
+- id: cdc-thimerosal
+  issuer: CDC
+  title: null
+  url: "https://www.cdc.gov/vaccine-safety/about/thimerosal.html"
+  language: en
+  topics: [vaccination]
+  approval: pending
+  note: "from V3 list, verify"
