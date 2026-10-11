@@ -1,3 +1,8 @@
 packages:
   - apps/web
   - packages/*
+
+# Native build scripts that pnpm may run during install.
+allowBuilds:
+  sharp: false
+  unrs-resolver: false

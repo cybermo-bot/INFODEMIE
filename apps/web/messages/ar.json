@@ -1,0 +1,72 @@
+{
+  "app": {
+    "short": "PNSI",
+    "name": "المنصة الوطنية للإنصات الاجتماعي الصحي وإدارة الوباء المعلوماتي",
+    "temporaryLayout": "تخطيط مؤقت: تُحدَّد الهوية البصرية في المرحلة 1ب."
+  },
+  "language": {
+    "label": "اللغة",
+    "fr": "Français",
+    "ar": "العربية",
+    "en": "English"
+  },
+  "auth": {
+    "title": "تسجيل الدخول",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "submit": "دخول",
+    "submitting": "جارٍ تسجيل الدخول…",
+    "logout": "تسجيل الخروج",
+    "invalid": "بيانات الدخول غير صحيحة.",
+    "throttled": "محاولات كثيرة. أعد المحاولة بعد بضع دقائق.",
+    "unavailable": "خدمة المصادقة غير متاحة."
+  },
+  "shell": {
+    "skipToContent": "الانتقال إلى المحتوى",
+    "mainNav": "التنقل الرئيسي",
+    "signedInAs": "متصل باسم",
+    "institution": "المؤسسة",
+    "roles": "الأدوار",
+    "loading": "جارٍ التحميل…",
+    "apiUnavailable": "تعذّر الوصول إلى واجهة البرمجة. تحقّق من تشغيل الخادم.",
+    "retry": "إعادة المحاولة"
+  },
+  "home": {
+    "title": "الرئيسية",
+    "intro": "أسس المنصة: الحسابات والأدوار واللغات وسجل التدقيق.",
+    "yourScreens": "الشاشات المتاحة وفق أدوارك"
+  },
+  "placeholder": {
+    "plannedAt": "هذه الشاشة مبرمجة في المرحلة {stage} من خطة البناء.",
+    "forbidden": "هذه الشاشة غير متاحة وفق أدوارك."
+  },
+  "nav": {
+    "cabinet": "عرض الديوان",
+    "veille": "غرفة الرصد",
+    "partenaires": "عروض الشركاء",
+    "signaux": "الإشارات",
+    "signaux_sanitaires": "الإشارات الصحية",
+    "dossiers": "الملفات",
+    "narratifs": "السرديات",
+    "reponses": "استوديو الردود",
+    "approbations": "قائمة المصادقة",
+    "alertes": "التنبيهات",
+    "actions": "الإجراءات والأثر",
+    "terrain": "التقارير الميدانية",
+    "preuves": "مكتبة الأدلة",
+    "rapports": "التقارير",
+    "sources": "المصادر",
+    "administration": "الإدارة"
+  },
+  "roles": {
+    "analyste": "محلل الوباء المعلوماتي",
+    "referent_scientifique": "مرجع علمي",
+    "redacteur": "محرر الاتصال",
+    "reviseur_linguistique": "مراجع لغوي",
+    "approbateur": "مصادق مؤسسي",
+    "cabinet": "الديوان",
+    "partenaire": "شريك",
+    "relais_terrain": "منسق ميداني",
+    "administrateur": "مسؤول المنصة"
+  }
+}

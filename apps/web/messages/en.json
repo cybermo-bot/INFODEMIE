@@ -1,0 +1,72 @@
+{
+  "app": {
+    "short": "PNSI",
+    "name": "National Health Social Listening and Infodemic Management Platform",
+    "temporaryLayout": "Temporary layout: the visual design is defined in Stage 1b."
+  },
+  "language": {
+    "label": "Language",
+    "fr": "Français",
+    "ar": "العربية",
+    "en": "English"
+  },
+  "auth": {
+    "title": "Sign in",
+    "email": "Email address",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "logout": "Sign out",
+    "invalid": "Incorrect credentials.",
+    "throttled": "Too many attempts. Try again in a few minutes.",
+    "unavailable": "The sign-in service is unavailable."
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main navigation",
+    "signedInAs": "Signed in as",
+    "institution": "Institution",
+    "roles": "Roles",
+    "loading": "Loading…",
+    "apiUnavailable": "The API cannot be reached. Check that the server is running.",
+    "retry": "Retry"
+  },
+  "home": {
+    "title": "Home",
+    "intro": "Platform foundations: accounts, roles, languages and the audit trail.",
+    "yourScreens": "Screens available with your roles"
+  },
+  "placeholder": {
+    "plannedAt": "This screen is planned for Stage {stage} of the build plan.",
+    "forbidden": "This screen is not available with your roles."
+  },
+  "nav": {
+    "cabinet": "Cabinet view",
+    "veille": "Monitoring room",
+    "partenaires": "Partner views",
+    "signaux": "Signals",
+    "signaux_sanitaires": "Health signals",
+    "dossiers": "Cases",
+    "narratifs": "Narratives",
+    "reponses": "Response studio",
+    "approbations": "Approval queue",
+    "alertes": "Alerts",
+    "actions": "Actions and impact",
+    "terrain": "Field reports",
+    "preuves": "Evidence library",
+    "rapports": "Reports",
+    "sources": "Sources",
+    "administration": "Administration"
+  },
+  "roles": {
+    "analyste": "Infodemic analyst",
+    "referent_scientifique": "Scientific referent",
+    "redacteur": "Communication editor",
+    "reviseur_linguistique": "Language reviewer",
+    "approbateur": "Institutional approver",
+    "cabinet": "Cabinet",
+    "partenaire": "Partner",
+    "relais_terrain": "Field relay",
+    "administrateur": "Administrator"
+  }
+}

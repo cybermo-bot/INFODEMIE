@@ -1,0 +1,72 @@
+{
+  "app": {
+    "short": "PNSI",
+    "name": "Plateforme Nationale de Social Listening Sanitaire et de Gestion de l'Infodémie",
+    "temporaryLayout": "Mise en page provisoire : la charte visuelle sera définie à l'étape 1b."
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "ar": "العربية",
+    "en": "English"
+  },
+  "auth": {
+    "title": "Connexion",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion en cours…",
+    "logout": "Se déconnecter",
+    "invalid": "Identifiants incorrects.",
+    "throttled": "Trop de tentatives. Réessayez dans quelques minutes.",
+    "unavailable": "Le service d'authentification est indisponible."
+  },
+  "shell": {
+    "skipToContent": "Aller au contenu",
+    "mainNav": "Navigation principale",
+    "signedInAs": "Connecté en tant que",
+    "institution": "Institution",
+    "roles": "Rôles",
+    "loading": "Chargement…",
+    "apiUnavailable": "L'API est injoignable. Vérifiez que le serveur est démarré.",
+    "retry": "Réessayer"
+  },
+  "home": {
+    "title": "Accueil",
+    "intro": "Fondations de la plateforme : comptes, rôles, langues et journal d'audit.",
+    "yourScreens": "Écrans accessibles avec vos rôles"
+  },
+  "placeholder": {
+    "plannedAt": "Écran prévu à l'étape {stage} du plan de construction.",
+    "forbidden": "Cet écran n'est pas accessible avec vos rôles."
+  },
+  "nav": {
+    "cabinet": "Vue Cabinet",
+    "veille": "Salle de veille",
+    "partenaires": "Vues partenaires",
+    "signaux": "Signaux",
+    "signaux_sanitaires": "Signaux sanitaires",
+    "dossiers": "Dossiers",
+    "narratifs": "Narratifs",
+    "reponses": "Studio de réponse",
+    "approbations": "File d'approbation",
+    "alertes": "Alertes",
+    "actions": "Actions et impact",
+    "terrain": "Remontée terrain",
+    "preuves": "Bibliothèque de preuves",
+    "rapports": "Rapports",
+    "sources": "Sources",
+    "administration": "Administration"
+  },
+  "roles": {
+    "analyste": "Analyste infodémie",
+    "referent_scientifique": "Référent scientifique",
+    "redacteur": "Rédacteur communication",
+    "reviseur_linguistique": "Réviseur linguistique",
+    "approbateur": "Approbateur institutionnel",
+    "cabinet": "Cabinet",
+    "partenaire": "Partenaire",
+    "relais_terrain": "Relais terrain",
+    "administrateur": "Administrateur"
+  }
+}
