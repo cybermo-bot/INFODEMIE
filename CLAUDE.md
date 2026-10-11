@@ -71,17 +71,28 @@ legacy/v3/           the previous Streamlit prototype, for reference only; do no
 
 ## Commands
 
-Fill this section as commands come to exist (stage 1).
+See `README.md` for the full list (`make help` prints it).
 
 ```
-# examples to create in stage 1
-make dev        # start postgres, redis, api, worker, web
-make test       # backend and frontend tests
-make lint
-make migrate
-make seed       # seed users and scenario data (flagged)
-make eval       # run the verification test set
+make help            # list every command
+make install         # uv sync (apps/api) and pnpm install
+make services        # start Postgres 16 + pgvector, Redis, Mailpit (Docker) and wait until healthy
+make services-down   # stop them (data volumes kept)
+make dev             # services, migrations, then API :8000, Celery worker, web :3000 (Ctrl-C stops)
+make api | worker | web   # run one process alone
+make migrate         # alembic upgrade head
+make migration-check # alembic check: models and migrations agree (needs Postgres)
+make seed            # ONMNE + one account per role; passwords in data/seed-credentials.txt
+make test            # backend tests (DB tests skip if Postgres is down) and web unit tests
+make test-api-db     # backend integration tests only; fail if Postgres is down
+make e2e             # Playwright browser tests (needs make dev and make seed)
+make lint            # ruff, ruff format --check, eslint, tsc
+make fmt             # format backend code
+make api-client      # export OpenAPI and regenerate packages/api-client types
+make eval            # verification test set (Stage 4; exits with a message until then)
 ```
+
+Node 22 is required (`.nvmrc`); run `nvm use` if your shell starts another version. Playwright needs its browser once: `pnpm --filter @pnsi/web exec playwright install chromium`.
 
 ## Glossary
 

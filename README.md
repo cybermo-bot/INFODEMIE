@@ -6,7 +6,7 @@ PNSI collects public health conversation from Tunisian media and social platform
 
 ## Status
 
-Starter pack: documentation, decisions, build plan and project skills. Code starts at Stage 1 (`docs/build-plan.md`).
+Stage 1 (foundation) is built; see `docs/status.md` for what runs and what waits on Docker.
 
 ## Where to start
 
@@ -23,7 +23,7 @@ Starter pack: documentation, decisions, build plan and project skills. Code star
 ## Repository layout
 
 ```
-apps/            api, web, capture extension (from Stage 1)
+apps/            api (FastAPI), web (Next.js), capture extension (Stage 3)
 packages/        generated API client
 infra/           docker compose
 corpus/          evidence registry
@@ -35,4 +35,23 @@ legacy/v3/       previous prototype, reference only
 
 ## Commands
 
-Added in Stage 1. See `CLAUDE.md`.
+```
+make help            # list every command
+make install         # uv sync (apps/api) and pnpm install
+make services        # start Postgres 16 + pgvector, Redis, Mailpit (Docker) and wait until healthy
+make services-down   # stop them (data volumes kept)
+make dev             # services, migrations, then API :8000, Celery worker, web :3000 (Ctrl-C stops)
+make api | worker | web   # run one process alone
+make migrate         # alembic upgrade head
+make migration-check # alembic check: models and migrations agree (needs Postgres)
+make seed            # ONMNE + one account per role; passwords in data/seed-credentials.txt
+make test            # backend tests (DB tests skip if Postgres is down) and web unit tests
+make test-api-db     # backend integration tests only; fail if Postgres is down
+make e2e             # Playwright browser tests (needs make dev and make seed)
+make lint            # ruff, ruff format --check, eslint, tsc
+make fmt             # format backend code
+make api-client      # export OpenAPI and regenerate packages/api-client types
+make eval            # verification test set (Stage 4; exits with a message until then)
+```
+
+Node 22 is required (`.nvmrc`); run `nvm use` if your shell starts another version. Playwright needs its browser once: `pnpm --filter @pnsi/web exec playwright install chromium`.

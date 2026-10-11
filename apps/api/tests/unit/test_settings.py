@@ -79,3 +79,11 @@ def test_secret_values_lists_only_real_secrets():
 def test_secure_cookies_default_by_environment():
     assert make(app_env=AppEnv.DEV).secure_cookies is False
     assert make(app_env=AppEnv.PILOT, secret_key="y" * 40).secure_cookies is True
+
+
+def test_data_dir_is_anchored_at_repo_root():
+    from pnsi.settings import REPO_ROOT
+
+    assert make(data_dir="").data_dir == REPO_ROOT / "data"
+    assert make(data_dir="./data").data_dir == REPO_ROOT / "data"
+    assert make(data_dir="/srv/pnsi").data_dir.as_posix() == "/srv/pnsi"

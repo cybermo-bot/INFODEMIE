@@ -43,7 +43,7 @@ describe("message catalogues", () => {
   it("contain no em dash (writing rule 11)", () => {
     for (const [locale, entries] of Object.entries(flat)) {
       for (const [key, value] of Object.entries(entries)) {
-        expect(value.includes("—"), `${locale}:${key}`).toBe(false);
+        expect(value.includes("\u2014"), `${locale}:${key}`).toBe(false);
       }
     }
   });

@@ -3,6 +3,7 @@
 | File | What it is |
 | --- | --- |
 | `decisions.md` | Decision log. Overrides everything else. |
+| `status.md` | What is built, how it was verified, what is left to run. |
 | `build-plan.md` | Stages, tasks and acceptance checks for the minister-ready build. |
 | `blueprint.html` | Product blueprint (open in a browser): brief, research, sources, concept, verification, screens (content only), indicators, architecture, demo script. |
 | `design-brief.md` | Visual design brief. The interface is designed from scratch (D12). |

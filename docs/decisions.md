@@ -79,3 +79,31 @@ Decisions that shape the product. Newest at the bottom. Each entry: date, decisi
 **Decision.** The team rejected the visual design of V3 and of the blueprint mockups. The features and the information on each screen stay; the visual design is rebuilt from scratch: professional, simple to the eye, carefully crafted.
 
 **Consequence.** `docs/design-brief.md`. A design direction step (Stage 1b) explores three directions as real pages with the `frontend-design` plugin and the taste skills (`Leonxlnx/taste-skill`), the team picks one, and it is codified in design tokens and `docs/DESIGN.md` before the other screens are built. The blueprint mockups are a content reference only.
+
+## D13 · Sessions and CSRF (2026-10-11)
+
+**Decision.** Development login uses local accounts (argon2id) and server-side sessions: a random token in an httpOnly, SameSite=Lax cookie (Secure outside dev), with only a keyed hash stored in `sessions`. Sessions expire after 12 hours idle and 7 days at most; logout revokes them at once. Unsafe requests need a CSRF token (double submit: a readable `pnsi_csrf` cookie echoed in `X-CSRF-Token`, checked against the session) and an allowed `Origin`. Five failed logins per account in 15 minutes block that account for the rest of the window.
+
+**Reason.** Spec §24 requires session expiry and revocation; server-side sessions give both directly. The web app proxies `/api` so cookies stay first-party.
+
+**Limits.** The login throttle lives in process memory (one API process in dev and demo); the pilot moves it to Redis. The pilot replaces local accounts with institutional OIDC and adds MFA for privileged roles.
+
+**Alternatives.** JWT in cookies (rejected: revocation needs a server-side list anyway). Bearer tokens in browser storage (rejected: exposed to injected scripts).
+
+## D14 · Roles and permission matrix (2026-10-11)
+
+**Decision.** The nine roles of blueprint §8 are implemented as scoped roles on a membership (a person can hold several, as spec §3 allows for small teams). Permissions are a static matrix in `apps/api/pnsi/authz/permissions.py`; the menu returned by `GET /api/v1/me` is derived from it, and the backend checks every call. Choices made where the blueprint is silent:
+
+- `administrateur` operates the platform (sources, users, audit, jobs) and has no editorial permission.
+- Granting `referent_scientifique` or `approbateur` needs a written justification, kept in the audit trail, and nobody can grant it to themselves (spec §3: no silent grant of scientific authority).
+- Recording a publication (`actions.record`) is allowed to `redacteur` and `approbateur`: the communication unit publishes, the approver may record it too.
+- `partenaire` gets a "Vues partenaires" screen (thematic or territorial aggregates, Stage 6) and reports; no source access.
+- An object belonging to another institution answers 404, not 403, so its existence is not revealed.
+
+**Alternatives.** Roles directly on users without institutions (rejected: spec §3 requires institution scope). Database-stored permission matrix (deferred: no need to edit it at runtime yet).
+
+## D15 · Dates in the interface (2026-10-11)
+
+**Decision.** Timestamps are displayed in Africa/Tunis with a 24-hour clock in all three locales, and with Western digits (0-9) in Arabic, as in Tunisian administrative usage. `fr-TN` and `ar-TN` default to a 12-hour clock in current browsers, so the format is set explicitly.
+
+**Alternatives.** Browser defaults (rejected: "12:30 AM" and "ص" markers read oddly in a Tunisian ministry tool). Eastern Arabic digits (rejected for the same reason; to revisit with the native review in Stage 7).

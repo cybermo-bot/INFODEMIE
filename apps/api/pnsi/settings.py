@@ -122,6 +122,15 @@ class Settings(BaseSettings):
             raise ValueError("DEFAULT_LOCALE must be fr, ar or en")
         return value
 
+    @field_validator("data_dir", mode="before")
+    @classmethod
+    def _data_dir_from_repo_root(cls, value: object) -> Path:
+        # Commands run from apps/api, so relative paths are anchored at the repo root.
+        if value in (None, ""):
+            return REPO_ROOT / "data"
+        path = Path(str(value)).expanduser()
+        return path if path.is_absolute() else (REPO_ROOT / path).resolve()
+
     @field_validator("database_url", "test_database_url")
     @classmethod
     def _postgres_only(cls, value: str) -> str:
