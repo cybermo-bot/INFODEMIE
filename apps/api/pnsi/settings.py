@@ -52,8 +52,8 @@ class Settings(BaseSettings):
     api_base_url: str = "http://localhost:8000"
     default_locale: str = "fr"
     default_timezone: str = "Africa/Tunis"
-    database_url: str = "postgresql+psycopg://pnsi:pnsi@localhost:5432/pnsi"
-    test_database_url: str = "postgresql+psycopg://pnsi:pnsi@localhost:5432/pnsi_test"
+    database_url: str = "postgresql+psycopg://pnsi:pnsi@localhost:5433/pnsi"
+    test_database_url: str = "postgresql+psycopg://pnsi:pnsi@localhost:5433/pnsi_test"
     redis_url: str = "redis://localhost:6379/0"
     secret_key: SecretStr = SecretStr("change-me")
     data_dir: Path = REPO_ROOT / "data"

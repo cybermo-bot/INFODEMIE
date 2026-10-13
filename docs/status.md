@@ -1,13 +1,13 @@
 # Status
 
-Last updated: 2026-10-11, end of the Stage 1 session (before Docker, Ollama and keys).
+Last updated: 2026-10-13. Stage 1 verified on the Docker stack. Stage 1b not started.
 
 ## Stage 1 · Foundation: what is done
 
 | Build plan task | State | Where |
 | --- | --- | --- |
 | 1. Monorepo skeleton, Makefile | Done | `Makefile`, `scripts/dev.sh`, `pnpm-workspace.yaml`, `.nvmrc` |
-| 2. docker-compose (Postgres 16 + pgvector, Redis, Mailpit, health checks) | Written, never started | `infra/docker-compose.yml`, `infra/postgres/init.sql` |
+| 2. docker-compose (Postgres 16 + pgvector, Redis, Mailpit, health checks) | Done, running (Postgres on host port 5433) | `infra/docker-compose.yml`, `infra/postgres/init.sql` |
 | 3. FastAPI app, settings validation, logging with secret redaction, `/api/v1/health` | Done | `apps/api/pnsi/` |
 | 4. Data model (30 tables) and Alembic migration | Done | `apps/api/pnsi/models/`, `apps/api/migrations/versions/0001_initial.py` |
 | 5. Auth (argon2id, httpOnly session cookies, CSRF), 9 roles, central authorisation | Done | `apps/api/pnsi/auth/`, `apps/api/pnsi/authz/` (decisions D13, D14) |
@@ -31,51 +31,33 @@ API endpoints so far: `GET /health/live`, `GET /health`, `POST /auth/login`, `PO
   
   This run found one real bug, now fixed: the `follow_ups.window` column is a reserved word in PostgreSQL (renamed `horizon`; a test now rejects reserved column names). It also showed that `pg_trgm` is not needed yet, so migration 0001 no longer creates it (the compose init script still does).
 
-None of this replaces the run on your Docker stack below: the compose file, the init script, Redis and the Celery worker have not run yet.
+**Run on the Docker stack, 2026-10-13.** `make services`, `make migrate` (upgrade to 0001), `make migration-check` ("No new upgrade operations detected"), `make seed` (9 accounts), `make test-api-db` (24 passed), `make test` (105 backend, 16 web passed), `make lint` (clean), `make dev` (API, Celery worker with beat, web), `GET /api/v1/health` (`{"status":"ok","database":"ok","redis":"ok"}`), a `pnsi.ping` task round trip through Redis (`pong`), and `make e2e` (15 passed).
 
-## What is left to run once Docker is up
-
-Run from the repository root, in this order. Expected results in brackets.
-
-```bash
-nvm use                      # Node 22 (nvm default is already set to 22)
-cp .env.example .env
-python3 -c "import secrets; print(secrets.token_urlsafe(48))"   # paste as SECRET_KEY in .env
-make install                 # [no changes: dependencies are already installed]
-make services                # [postgres, redis, mailpit healthy]
-make migrate                 # [Running upgrade -> 0001]
-make migration-check         # [No new upgrade operations detected]
-make seed                    # [9 accounts; passwords in data/seed-credentials.txt]
-make test-api-db             # [24 passed]
-make test                    # [81 + 24 backend passed, 16 web passed]
-make lint                    # [clean]
-make dev                     # API :8000, worker, web :3000
-```
-
-Then, with `make dev` running, in a second terminal:
-
-```bash
-curl -s localhost:8000/api/v1/health      # [{"status":"ok","database":"ok","redis":"ok"}]
-make e2e                                  # [15 passed]
-```
-
-And by hand: open http://localhost:3000, log in with an account from `data/seed-credentials.txt`, check the menu, switch to العربية, check the layout mirrors. Mailpit's inbox is at http://localhost:8025 (nothing sends mail yet).
+**Port change.** Ubuntu in WSL has its own PostgreSQL 16 (apt package `postgresql-16`) that starts with WSL and holds `127.0.0.1:5432`. The Docker container could not bind that port, and connections went to the Ubuntu server ("password authentication failed for user pnsi"). The project's Postgres is now published on host port **5433** (`infra/docker-compose.yml`, `.env.example`, settings defaults). If your `.env` was copied before this change, set `DATABASE_URL` and `TEST_DATABASE_URL` to `localhost:5433` (done on this machine). The Ubuntu PostgreSQL is untouched; PNSI does not use it.
 
 Things to watch:
 
-- `infra/postgres/init.sql` runs only when the Postgres volume is first created. If you started an earlier Postgres with the same volume, run `make services-down` and `docker volume rm pnsi_pgdata` first (this deletes local data).
-- The Celery worker has never been started. `make dev` starts it with beat; it has one `pnsi.ping` task and no schedule yet.
-- Ollama is not used in Stage 1. For Stage 2 and 4, check `curl http://localhost:11434/api/tags` lists `bge-m3` and the chat model.
-- Playwright's Chromium is already downloaded in `~/.cache/ms-playwright` and ran without extra system packages.
+- `infra/postgres/init.sql` runs only when the Postgres volume is first created. To start over: `make services-down` then `docker volume rm pnsi_pgdata` (this deletes local data).
+- Celery beat has no schedule yet; it arrives with the Stage 2 connectors.
+- Mailpit's inbox is at http://localhost:8025 (nothing sends mail yet).
 
 ## Stage 1 acceptance checks
 
 | Check | State |
 | --- | --- |
-| `make dev` starts everything; `make test` and `make lint` pass | `make test` and `make lint` pass now; `make dev` needs Docker |
-| Each seeded role logs in and sees only its allowed menu; a forbidden API call returns 403 (tested) | Passed on the throwaway Postgres (API and browser); to confirm on Docker |
-| Switching to Arabic mirrors the whole layout; Latin text inside stays LTR | Passed in Chromium; to confirm on Docker |
-| An audit event is written on login and on any create or update (tested) | Passed on the throwaway Postgres; to confirm on Docker |
+| `make dev` starts everything; `make test` and `make lint` pass | Passed on Docker |
+| Each seeded role logs in and sees only its allowed menu; a forbidden API call returns 403 (tested) | Passed on Docker (API and browser) |
+| Switching to Arabic mirrors the whole layout; Latin text inside stays LTR | Passed in Chromium on Docker |
+| An audit event is written on login and on any create or update (tested) | Passed on Docker |
+
+## Stage 0 items still open on your side (checked 2026-10-13)
+
+Done: WSL mirrored networking (`.wslconfig`), Docker, Node 22, `.env` with `SECRET_KEY`, the design plugin (`frontend-design`).
+
+1. **Ollama on Windows** (needed from Stage 2): not installed. Install from ollama.com, then in PowerShell `ollama pull bge-m3` and `ollama pull qwen3:4b`. Check from Ubuntu: `curl http://localhost:11434/api/tags`. The GPU is an RTX 3050 6 GB with driver 551.23; update the driver first.
+2. **Taste skills** (needed for Stage 1b), from the repo folder: `npx skills add https://github.com/Leonxlnx/taste-skill --skill "design-taste-frontend"` and the same with `--skill "minimalist-ui"`. Choose Claude Code if asked.
+3. **Keys in `.env`** (all empty), see `docs/setup-windows.md` section 7: `GEMINI_API_KEY`, `GROQ_API_KEY`, `GOOGLE_API_KEY` (YouTube Data API v3 + Fact Check Tools API), `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_PHONE`, `TELEGRAM_BOT_TOKEN`, `APIFY_TOKEN`; optional `NCBI_API_KEY`, `NCBI_EMAIL`. Missing keys never block the build: those connectors show "non configuré".
+4. **Applications that take weeks**: Reddit Data API access, Meta developer account and app.
 
 ## Decisions taken in this session
 
