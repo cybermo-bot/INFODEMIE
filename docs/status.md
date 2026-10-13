@@ -54,7 +54,7 @@ Things to watch:
 
 Done: WSL mirrored networking (`.wslconfig`), Docker, Node 22, `.env` with `SECRET_KEY`, the design plugin (`frontend-design`).
 
-1. **Ollama on Windows** (needed from Stage 2): not installed. Install from ollama.com, then in PowerShell `ollama pull bge-m3` and `ollama pull qwen3:4b`. Check from Ubuntu: `curl http://localhost:11434/api/tags`. The GPU is an RTX 3050 6 GB with driver 551.23; update the driver first.
+1. **Ollama on Windows**: done 2026-10-13. Ollama 0.40.3 with `bge-m3` (1024-dim embeddings) and `qwen3:4b-instruct` (D16), both fully on the GPU (RTX 3050 6 GB, driver 617.42), reachable from Ubuntu at `http://localhost:11434`. About 55 tokens/s; a short answer takes under 1 s once the model is loaded. `qwen3:4b` (the Thinking variant) is also pulled; it can be removed with `ollama rm qwen3:4b` unless the Stage 2 benchmark wants it.
 2. **Taste skills** (needed for Stage 1b), from the repo folder: `npx skills add https://github.com/Leonxlnx/taste-skill --skill "design-taste-frontend"` and the same with `--skill "minimalist-ui"`. Choose Claude Code if asked.
 3. **Keys in `.env`** (all empty), see `docs/setup-windows.md` section 7: `GEMINI_API_KEY`, `GROQ_API_KEY`, `GOOGLE_API_KEY` (YouTube Data API v3 + Fact Check Tools API), `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_PHONE`, `TELEGRAM_BOT_TOKEN`, `APIFY_TOKEN`; optional `NCBI_API_KEY`, `NCBI_EMAIL`. Missing keys never block the build: those connectors show "non configuré".
 4. **Applications that take weeks**: Reddit Data API access, Meta developer account and app.

@@ -107,3 +107,13 @@ Decisions that shape the product. Newest at the bottom. Each entry: date, decisi
 **Decision.** Timestamps are displayed in Africa/Tunis with a 24-hour clock in all three locales, and with Western digits (0-9) in Arabic, as in Tunisian administrative usage. `fr-TN` and `ar-TN` default to a 12-hour clock in current browsers, so the format is set explicitly.
 
 **Alternatives.** Browser defaults (rejected: "12:30 AM" and "ص" markers read oddly in a Tunisian ministry tool). Eastern Arabic digits (rejected for the same reason; to revisit with the native review in Stage 7).
+
+## D16 · Local chat model (2026-10-13)
+
+**Decision.** The local fallback chat model on Ollama is `qwen3:4b-instruct` (Qwen3-4B-Instruct-2507, Q4_K_M, about 2.5 GB), set by `LOCAL_CHAT_MODEL`.
+
+**Reason.** The `qwen3:4b` tag now points to Qwen3-4B-Thinking-2507, which always reasons before answering: `think: false` is ignored, the reasoning lands in the answer text, and a one-sentence answer took about 30 s on the RTX 3050 6 GB. The instruct variant answers the same prompt in under 1 s once loaded, at about 55 tokens/s, and fits in GPU memory beside `bge-m3`.
+
+**Limits.** Chosen on speed and behaviour only. Its quality on triage, stance and Derja is measured in the Stage 2 model benchmark, which may replace it.
+
+**Alternatives.** `qwen3:4b` Thinking (rejected for batch tasks: slow, reasoning leaks into output; may still be benchmarked for verification). Larger models (rejected for now: they do not fit fully in 6 GB of VRAM).

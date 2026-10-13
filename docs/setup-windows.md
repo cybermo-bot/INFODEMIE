@@ -50,7 +50,7 @@ docker run --rm hello-world
 
 ```powershell
 ollama pull bge-m3
-ollama pull qwen3:4b
+ollama pull qwen3:4b-instruct
 ```
 
 4. In Ubuntu, check: `curl http://localhost:11434/api/tags` should list both models.

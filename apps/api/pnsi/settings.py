@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     groq_api_key: SecretStr | None = None
     ollama_base_url: str = "http://localhost:11434"
     embedding_model: str = "bge-m3"
-    local_chat_model: str = "qwen3:4b"
+    local_chat_model: str = "qwen3:4b-instruct"
     ai_daily_budget_gemini_requests: int | None = None
     ai_daily_budget_groq_requests: int | None = None
 
