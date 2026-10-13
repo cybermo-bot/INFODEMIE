@@ -1,0 +1,11 @@
+.venv
+apps/web/node_modules
+apps/web/.next
+apps/web/.next-local
+data
+apps/web/*.tsbuildinfo
+*.db
+*.db-*
+artifacts
+__pycache__
+.env

@@ -1,0 +1,27 @@
+{
+  "name": "pnsi-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write app next.config.ts tsconfig.json",
+    "format:check": "prettier --check app next.config.ts tsconfig.json"
+  },
+  "dependencies": {
+    "lucide-react": "1.55.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2"
+  }
+}

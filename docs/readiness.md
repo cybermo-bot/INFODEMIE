@@ -1,0 +1,57 @@
+# Readiness and traceability
+
+Status: functional local installation with personal accounts and owner-supplied data, plus an isolated synthetic demonstration. This build does not satisfy the PDF’s entire pilot or production acceptance checklist. “Perfect” and “no flaws” are not testable guarantees; the checks below establish a bounded result.
+
+## Implemented and exercised
+
+- Separate local mode on ports 3001/8001 with an empty dedicated database, one-time setup code, personal administrator provisioning, individual accounts, enforced temporary password changes and administrator resets that revoke existing sessions. Loopback host/origin guards and startup refusal for a database containing synthetic users. Verified online SQLite backups at restart and on demand. See `local-use.md`.
+
+- Dedicated Next.js 16 / React / TypeScript frontend and FastAPI API, separate processes, persistent SQLAlchemy database, isolated deterministic fixture set.
+- Page families for overview, conversations, imports, cases, narratives, alerts, evidence source registry, document passages, document review, response studio, approval queue, actions, observations, reports, annotations, model evaluation state, user administration, jobs, audit, help and profile.
+- Case tabs for summary, content, observed spread, evidence, assessment, responses, actions, follow-up and timeline.
+- Institution-scoped reads, searches, object lookup and writes. Role-gated source configuration, scientific review, editorial review and institutional approval. Administrators cannot give themselves scientific privileges through the generic API.
+- Opaque expiring, revocable sessions and salted PBKDF2 password hashes; development fixture credentials are intentionally visible in demo mode only. Public production APP_ENV fails closed.
+- Authorized JSON import with bounded row count, validation preview, automated first-pass handle/email/phone redaction, analyst review, duplicate suppression and idempotency key.
+- RSS connector with explicit source permission/enablement, HTTPS-only destination checks, private address and redirect rejection, time/size limits and XML entity rejection. Three real public ECDC feeds are connected in the local workspace with CC BY 4.0 attribution, original links, actual collection results and cross-feed article deduplication. Selected-item social tracking now has official adapters for YouTube, X, Bluesky and Mastodon; YouTube/X credentials are absent. A real Bluesky connectivity check succeeded; no client monitoring scope has yet been selected. Other social integrations remain unavailable. See `social-tracking.md`.
+- Dashboard exposes actual API/database responses and collector heartbeat, queued/running/failed jobs, persisted totals, latest publications and collection history. It refreshes through the authenticated API every 15 seconds. Enabled catalog feeds poll every 30 minutes with exponential network-failure backoff; initial sync is asynchronous.
+- Asynchronous persisted lexical evidence retrieval. It returns context passages and insufficient evidence, not a fabricated medical verdict. Jobs can fail and operators can retry. A single local worker recovers interrupted jobs.
+- Exact document/version/passage links. Scientific conclusion checks require supporting/contradicting approved passages where appropriate. Reviewer rationale is mandatory.
+- Deterministic uncertainty-aware response template from a confirmed assessment. Separate per-variant scientific, language and institutional reviews. Approval binds exact response version, assessment version, body checksum and evidence snapshot checksum.
+- Response edits and evidence withdrawal invalidate affected approval; stale assessments cannot produce approved actions.
+- Manual action recording with exact approved text/version. Exactly three follow-up windows (48h, 7d, 30d), with retry idempotency, coverage comparability and interpretation fields.
+- Frozen report snapshots; institutional approval before PDF/JSON/CSV export; formula-injection escaping. Audit before/after records for mutations and exports.
+- French-first UI, English and Arabic navigation dictionaries, provisional Derja/Arabizi strings, persisted locale, RTL mirroring, original-language content, keyboard focus, modal focus containment and chart table alternatives.
+- Immutable version snapshots and foreign-key relationship records; content deletion redacts affected snapshots and withdraws impacted reports. Privacy redaction is an explicitly audited exception to immutable history.
+- Independent annotation resolution, checksum-bound frozen datasets, measured accuracy/per-class metrics/confusion matrices with sample sizes and language breakdowns. No model quality is fabricated.
+- Optional localhost Ollama assessment adapter with bounded structured output and strict stored-citation validation; no actual model service was configured or called.
+
+## Validation performed
+
+The original suite has 22 direct API tests: institution isolation, role denial, protected fields, optimistic concurrency, factual evidence requirements, staged approval, edit/withdrawal invalidation, action idempotency, follow-up schedule, redaction, import atomicity/deduplication, snapshot export gates, async worker, SSRF rejection, session revocation and pagination bounds. Additional tests cover new-case claims, secret redaction from audit, immutable version history, independent annotation resolution and measured frozen benchmarks. See the final test command output for the current total.
+
+Current API suite: **54 passed** in the full run, plus **7 passed** in the automatic-monitoring suite including two further checks, with one upstream Starlette/httpx deprecation warning. The local-account/backup checks cover empty local setup, temporary password enforcement/revocation, host/origin denial, administrator lockout prevention, synthetic database refusal, a complete import-to-approved-response workflow without demo fixtures, and verified backup restoration without modifying the source. Four further RSS checks cover RSS/Atom metadata parsing, honest missing dates, attribution/deduplication, scheduler and heartbeat behavior, idempotent queueing and failure backoff without fabricated data. Frontend CSV/JSON parser: **3 tests passed**, including multilingual/multiline/quoted CSV and malformed/oversized input rejection. Frontend formatting check, typecheck and optimized builds pass locally. npm installation reported zero known vulnerabilities at install time. Browser inspection covers sign-in, dashboard, case navigation, mobile menu/dashboard, Arabic RTL, an end-to-end authorized synthetic import and the compiled local setup screen. The overview regression includes unassigned imported content. French and Arabic report PDFs were rendered and visually inspected. An online SQLite backup into a separate restore-check database passed integrity and record-count checks (one action, three follow-ups, 119 version snapshots at that checkpoint). These are not a comprehensive WCAG, load, penetration, clinical or linguistic evaluation.
+
+## Still required from engineering
+
+- Normalize generic versioned record storage into a complete relational domain schema with FK constraints and managed migrations; generate strongly typed frontend contracts (the current flexible entity client contains `any`). Query filtering currently occurs in application memory after institution scoping and must move to indexed SQL for scale.
+- Complete narrative merge/split history, complete multi-annotator disagreement reconciliation, source revision/edit semantics, multilingual semantic retrieval and evaluated claim extraction.
+- OIDC/MFA, production onboarding and membership policies, distributed rate limiting, independent language-review roles where needed and production security headers/CSP.
+- Retry-After-aware polling, multi-worker locking/leases, dead-letter handling, distributed queues, evaluated Redis/Celery configuration and extended operational metrics. Single-worker scheduling, exponential backoff and heartbeat are implemented; the durable polling worker remains single-process by design.
+- Private object storage integration, malware-scanned document/media uploads, PDF/OCR/ASR extraction, retention scheduler, robust propagation into backups, XLSX exports and full linguistic QA of Arabic PDF typography. Current document ingestion is authorized manual passage entry; do not upload unscanned files.
+- Production source-fetch egress firewall/pinned DNS to eliminate DNS-rebinding risk beyond the current initial DNS check.
+- Full UI translation of descriptive text, verified Derja terminology, translation equivalence tests, full mobile/tablet and screen-reader/WCAG 2.2 AA audit.
+- PostgreSQL/container integration verification, versioned migrations, backup/restore and rollback drills, concurrency/load tests, CI dependency/license/security scans.
+
+## Required external gates
+
+Named institutional reviewers and scope; additional permitted sources and rights; authentic current clinical corpus; local language review; an annotated frozen evaluation set and release thresholds; Tunisian hosting, identity and privacy decisions; funded operations and staffing. Public ECDC RSS metadata is licensed, connected and tested live. A YouTube key is now configured and returned actual search/metric results; X is unconfigured and Bluesky public search was denied. Platform-specific approval and entitlement remain external requirements. No institutional endorsement, public production deployment or clinical performance is claimed.
+
+Unavailable optional capabilities remain explicitly unavailable. Changing an API key alone does not implement or authorize an integration. No automatic publication, external AI transmission or invented recipient notifications are enabled.
+
+## Social tracking checkpoint
+
+Eight additional tests cover URL validation, role/institution gates, missing keys, independent platform failures, rate limits, cache expiry, full target removal, secret redaction and official YouTube/Bluesky/Mastodon/X metric normalization. A real official Bluesky public-post API connectivity test succeeded on 2026-10-11; that service test was not inserted as client health data. YouTube/X have no supplied credentials; Mastodon has no user-selected server/publication. This is selected-item current engagement monitoring, not historical or keyword social listening. Owner URLs/purpose persist; transient API data is excluded from generic versioning and backups.
+
+## Automatic monitoring checkpoint
+
+Owner-requested multilingual health watches are configured for four providers. A local API background thread performs collection without a browser, observes due times, pauses, handles restart recovery, independent provider failures, daily search ceilings and Retry-After/backoff. Automatic tests cover scheduling, pause/resume, discovery, private data rejection, deduplication, transient expiry, scope/role gates, daily budget limits, official keyword endpoint normalization and new-credential wake-up. YouTube and public Mastodon hashtag discovery succeeded live; the first cycle produced 20 social observations. Their measurements stay in memory; permanent keyword/claim extraction, historical spread, semantic matching, full archive pagination and evaluated language detection remain incomplete. The current bounded sample is not Tunisian population coverage or a validated rumour classifier.
