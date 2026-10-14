@@ -50,13 +50,35 @@ Things to watch:
 | Switching to Arabic mirrors the whole layout; Latin text inside stays LTR | Passed in Chromium on Docker |
 | An audit event is written on login and on any create or update (tested) | Passed on Docker |
 
+## In progress: Facebook watch-list first (decision D17, 2026-10-14)
+
+Mozart asked for Facebook data within two days, so this comes before Stage 1b.
+
+Done and committed (9316e06), 163 backend tests passing:
+- Redaction before storage (`pnsi/privacy/redact.py`): e-mails, social profile links, @handles, phone numbers (Western and Eastern Arabic digits), names of commenters in the thread. Integration test proves none of the planted identifiers reaches the database.
+- Draft health keyword filter (`pnsi/collection/relevance.py`), French, Arabic, Arabizi. Needs a native Derja review.
+- Apify client with a monthly budget guard (`pnsi/connectors/apify.py`), Facebook Pages connector (`pnsi/connectors/facebook_apify.py`): posts, then comments of health posts only.
+- Collection service: idempotent storage, revisions on edits, failures visible on the run and the source.
+- API: `GET /sources`, `POST /sources/facebook-pages`, `PATCH /sources/{id}`, `POST|GET /sources/{id}/runs`, `GET /runs/{id}`, `GET /items`, `GET /items/{id}`. Celery task `pnsi.collect_run` and a 15-minute schedule check.
+- Tests use synthetic fixtures shaped on the actors' published schema (`apps/api/tests/fixtures/apify/README.md`); to be complemented with a recorded real response once the token works.
+
+Next, in order:
+1. Web screens: Sources (watch-list, add a Page, run, status and errors) and Signaux (posts with their comments, route label, run). Messages in fr, ar, en.
+2. First real run once `APIFY_TOKEN` is in `.env` and Mozart has given 5 to 10 checked Page URLs.
+3. PNSI Capture extension MVP (route `assisted`): one click on a Facebook post records it with its loaded comments, redacted in the browser, sent to `/api/v1/imports/capture`.
+4. Then back to Stage 1b (design directions).
+
+Waiting on Mozart:
+- **Apify API token** in `.env` as `APIFY_TOKEN` (account created, username only so far; the token is under Settings, API & Integrations).
+- **5 to 10 Facebook Page URLs**, opened and checked (public, active, Tunisian, health-relevant), saying for each whether it is a health institution (no keyword filter) or a general page.
+
 ## Stage 0 items still open on your side (checked 2026-10-13)
 
 Done: WSL mirrored networking (`.wslconfig`), Docker, Node 22, `.env` with `SECRET_KEY`, the design plugin (`frontend-design`).
 
 1. **Ollama on Windows**: done 2026-10-13. Ollama 0.40.3 with `bge-m3` (1024-dim embeddings) and `qwen3:4b-instruct` (D16), both fully on the GPU (RTX 3050 6 GB, driver 617.42), reachable from Ubuntu at `http://localhost:11434`. About 55 tokens/s; a short answer takes under 1 s once the model is loaded. `qwen3:4b` (the Thinking variant) is also pulled; it can be removed with `ollama rm qwen3:4b` unless the Stage 2 benchmark wants it.
 2. **Taste skills**: done 2026-10-13. `design-taste-frontend` (v2) and `minimalist-ui` from `Leonxlnx/taste-skill`, installed in `.agents/skills/` with links in `.claude/skills/`, pinned in `skills-lock.json`. Note: v2 targets marketing pages ("not for dashboards or app screens"); Stage 1b uses its references, lint and browser inspector, and relies on `minimalist-ui` and `frontend-design` for the screens.
-3. **Keys in `.env`** (all empty), see `docs/setup-windows.md` section 7: `GEMINI_API_KEY`, `GROQ_API_KEY`, `GOOGLE_API_KEY` (YouTube Data API v3 + Fact Check Tools API), `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_PHONE`, `TELEGRAM_BOT_TOKEN`, `APIFY_TOKEN`; optional `NCBI_API_KEY`, `NCBI_EMAIL`. Missing keys never block the build: those connectors show "non configuré".
+3. **Keys in `.env`** (all empty; Apify account created 2026-10-14, token not yet in `.env`), see `docs/setup-windows.md` section 7: `GEMINI_API_KEY`, `GROQ_API_KEY`, `GOOGLE_API_KEY` (YouTube Data API v3 + Fact Check Tools API), `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_PHONE`, `TELEGRAM_BOT_TOKEN`, `APIFY_TOKEN`; optional `NCBI_API_KEY`, `NCBI_EMAIL`. Missing keys never block the build: those connectors show "non configuré".
 4. **Applications that take weeks**: Reddit Data API access, Meta developer account and app.
 
 ## Decisions taken in this session
