@@ -1,0 +1,40 @@
+[
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi/posts/900000000000001",
+    "commentUrl": "https://www.facebook.com/pagetestpnsi/posts/900000000000001?comment_id=700000000000001",
+    "commentId": "700000000000001",
+    "id": "Y29tbWVudDox",
+    "name": "Exemplia Testova",
+    "profileName": "Exemplia Testova",
+    "profileUrl": "https://www.facebook.com/exemplia.testova.000",
+    "profileId": "100099999999991",
+    "date": "2026-10-12T10:02:00.000Z",
+    "text": "el tal9i7 hedha ysabbeb l'autisme, ma3andich thi9a. Contactez-moi au 98 765 432 ou exemplia@mail.example",
+    "likesCount": "12",
+    "commentsCount": 2
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi/posts/900000000000001",
+    "commentId": "700000000000002",
+    "profileName": "سلمى الاختبار",
+    "profileUrl": "https://www.facebook.com/profile.php?id=100099999999992",
+    "date": "2026-10-12T10:15:00.000Z",
+    "text": "Exemplia غالطة، اللقاح ما يسببش التوحد. شوف @dr_exemple_test",
+    "likesCount": "30",
+    "commentsCount": 0
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi/posts/900000000000001",
+    "commentId": "700000000000003",
+    "profileName": "Page Test PNSI",
+    "profileUrl": "https://www.facebook.com/pagetestpnsi",
+    "date": "2026-10-12T10:30:00.000Z",
+    "text": "Le vaccin ROR ne cause pas l'autisme. Voir www.facebook.com/exemplia.testova.000 pour la discussion.",
+    "likesCount": "40"
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi/posts/900000000000001",
+    "profileName": "Sans Identifiant",
+    "text": "Commentaire sans identifiant, ignoré."
+  }
+]

@@ -81,3 +81,20 @@ def test_login_validation_error_shape():
     assert res.status_code == 422
     fields = {f["field"] for f in res.json()["error"]["field_errors"]}
     assert {"email", "password"} <= fields
+
+
+@pytest.mark.parametrize(
+    ("role", "method", "path"),
+    [
+        (Role.ANALYSTE, "post", "/api/v1/sources/facebook-pages"),
+        (Role.ANALYSTE, "post", f"/api/v1/sources/{uuid.uuid4()}/runs"),
+        (Role.CABINET, "get", "/api/v1/items"),
+        (Role.CABINET, "get", "/api/v1/sources"),
+        (Role.RELAIS_TERRAIN, "get", f"/api/v1/items/{uuid.uuid4()}"),
+        (Role.ADMINISTRATEUR, "get", "/api/v1/items"),
+    ],
+)
+def test_collection_routes_check_permissions_first(role, method, path):
+    body = {"url": "https://www.facebook.com/x", "name": "X", "checked_note": "0123456789"}
+    kwargs = {"json": body} if method == "post" else {}
+    assert getattr(client_as(role), method)(path, **kwargs).status_code == 403

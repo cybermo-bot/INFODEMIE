@@ -1,0 +1,43 @@
+[
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi",
+    "postId": "900000000000001",
+    "url": "https://www.facebook.com/pagetestpnsi/posts/900000000000001",
+    "time": "2026-10-12T09:30:00.000Z",
+    "timestamp": 1791797400,
+    "text": "Campagne de vaccination contre la rougeole (ROR) dans les écoles à partir de lundi. Renseignements : 80 100 000",
+    "user": {"id": "100000000000001", "name": "Page Test PNSI", "profileUrl": "https://www.facebook.com/pagetestpnsi"},
+    "pageName": "Page Test PNSI",
+    "likes": 120,
+    "comments": 4,
+    "shares": 15
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi",
+    "postId": "900000000000002",
+    "url": "https://www.facebook.com/pagetestpnsi/posts/900000000000002",
+    "time": "2026-10-12T11:00:00.000Z",
+    "text": "Résultats du match de ce soir et programme du week-end.",
+    "pageName": {"id": "100000000000001", "name": "Page Test PNSI"},
+    "likes": 300,
+    "comments": 50,
+    "shares": 4
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/pagetestpnsi",
+    "postId": "900000000000003",
+    "url": "https://www.facebook.com/pagetestpnsi/posts/900000000000003",
+    "time": "2026-10-12T15:45:00.000Z",
+    "text": "",
+    "previewTitle": "فقدان الأدوية في الصيدليات: ماذا تقول الوزارة؟",
+    "previewDescription": "مقال تجريبي",
+    "pageName": "Page Test PNSI",
+    "likes": 40,
+    "comments": 0,
+    "shares": 2
+  },
+  {
+    "error": "no_items",
+    "errorDescription": "Synthetic error row to exercise partial errors."
+  }
+]

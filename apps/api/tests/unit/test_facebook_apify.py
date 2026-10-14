@@ -1,0 +1,163 @@
+"""Facebook Pages through Apify: parsing, health filter, budget guard. No network."""
+
+from __future__ import annotations
+
+import pytest
+
+from pnsi.connectors.apify import ApifyClient, Budget
+from pnsi.connectors.base import BudgetExhausted, ConfigStatus, NotConfigured
+from pnsi.connectors.facebook_apify import (
+    COMMENTS_ACTOR,
+    POSTS_ACTOR,
+    FacebookPagesApify,
+    normalize_page_url,
+)
+from pnsi.enums import AuthorKind, SourceKind
+from pnsi.models import Source
+from pnsi.settings import Settings
+from tests.apify_fake import FakeApify
+
+
+def make_source(**config) -> Source:
+    return Source(
+        key="facebook:pagetestpnsi",
+        name="Page Test PNSI",
+        kind=SourceKind.SCRAPER,
+        route=FacebookPagesApify.route,
+        basis=FacebookPagesApify.basis,
+        config={
+            "connector": FacebookPagesApify.key,
+            "page_url": "https://www.facebook.com/pagetestpnsi",
+            **config,
+        },
+    )
+
+
+def connector(fake: FakeApify, max_spend: float = 5.0) -> FacebookPagesApify:
+    settings = Settings(apify_token="fake", apify_max_spend_usd=max_spend)
+    return FacebookPagesApify(settings, client_factory=fake.client)
+
+
+def test_not_configured_without_token():
+    settings = Settings(apify_token=None)
+    assert FacebookPagesApify(settings).validate_config(settings) is ConfigStatus.NOT_CONFIGURED
+    with pytest.raises(NotConfigured):
+        ApifyClient(None)
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("facebook.com/pagetestpnsi/", "https://www.facebook.com/pagetestpnsi"),
+        ("https://m.facebook.com/pagetestpnsi", "https://www.facebook.com/pagetestpnsi"),
+        (
+            "https://www.facebook.com/profile.php?id=61500000000000",
+            "https://www.facebook.com/profile.php?id=61500000000000",
+        ),
+    ],
+)
+def test_page_url_normalised(url, expected):
+    assert normalize_page_url(url) == expected
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.facebook.com/groups/123",
+        "https://example.com/page",
+        "https://www.facebook.com/",
+    ],
+)
+def test_non_page_urls_rejected(url):
+    with pytest.raises(ValueError):
+        normalize_page_url(url)
+
+
+def test_health_filter_keeps_health_posts_and_their_comments():
+    fake = FakeApify()
+    batch = connector(fake).fetch(make_source(), None)
+
+    posts = [i for i in batch.items if i.parent_external_id is None]
+    comments = [i for i in batch.items if i.parent_external_id is not None]
+    # Vaccination post and the Arabic medicines link post pass; the football post does not.
+    assert {p.external_id for p in posts} == {
+        "facebook:post:900000000000001",
+        "facebook:post:900000000000003",
+    }
+    assert batch.coverage["posts_filtered_out"] == 1
+    assert all(p.author_kind is AuthorKind.ORGANISATION for p in posts)
+    assert all(p.author_org_name == "Page Test PNSI" for p in posts)
+    # Comments only for the relevant post that has comments; the one without id is skipped.
+    assert [r["actor"] for r in fake.runs] == [POSTS_ACTOR, COMMENTS_ACTOR]
+    assert len(comments) == 3
+    # The Page answering in its own comments is an organisation, people are individuals.
+    kinds = {c.external_id: c.author_kind for c in comments}
+    assert kinds["facebook:comment:700000000000003"] is AuthorKind.ORGANISATION
+    assert kinds["facebook:comment:700000000000001"] is AuthorKind.INDIVIDUAL
+    # Commenter names are handed over for redaction, the Page name is not.
+    names = comments[0].known_names
+    assert "Exemplia Testova" in names and "سلمى الاختبار" in names
+    assert "Page Test PNSI" not in names
+    # The error row is reported, not hidden.
+    assert batch.partial_errors
+    assert batch.cursor_after == {"newest_post_at": "2026-10-12T15:45:00+00:00"}
+
+
+def test_cursor_is_used_on_next_run():
+    fake = FakeApify()
+    connector(fake).fetch(make_source(), {"newest_post_at": "2026-10-12T15:45:00+00:00"})
+    assert fake.runs[0]["input"]["onlyPostsNewerThan"] == "2026-10-12T15:45:00+00:00"
+
+
+def test_without_filter_every_post_is_kept():
+    fake = FakeApify()
+    batch = connector(fake).fetch(make_source(health_filter=False), None)
+    assert len([i for i in batch.items if i.parent_external_id is None]) == 3
+
+
+def test_every_run_is_capped_below_the_remaining_budget():
+    fake = FakeApify(used_usd=4.9)
+    connector(fake, max_spend=5.0).fetch(make_source(), None)
+    posts_run, *comment_runs = fake.runs
+    assert comment_runs
+    # Each cap fits what is left once earlier runs are charged at their real cost.
+    assert posts_run["max_charge"] <= 0.1 + 1e-9
+    assert fake.post_run_cost + sum(r["max_charge"] for r in comment_runs) <= 0.1 + 1e-9
+
+
+def test_budget_exhausted_stops_before_any_run():
+    fake = FakeApify(used_usd=4.995)
+    with pytest.raises(BudgetExhausted):
+        connector(fake, max_spend=5.0).fetch(make_source(), None)
+    assert fake.runs == []
+
+
+def test_account_limit_lower_than_ours_wins():
+    fake = FakeApify(used_usd=1.0, account_max_usd=1.0)
+    with pytest.raises(BudgetExhausted):
+        connector(fake, max_spend=5.0).fetch(make_source(), None)
+
+
+def test_comments_stop_when_budget_runs_out_mid_way():
+    # Enough for the posts run but not for a comments run: posts kept, error reported.
+    fake = FakeApify(used_usd=4.95, post_run_cost=0.03)
+    batch = connector(fake, max_spend=5.0).fetch(make_source(), None)
+    assert [r["actor"] for r in fake.runs] == [POSTS_ACTOR]
+    assert any("Budget Apify" in e for e in batch.partial_errors)
+    assert all(i.parent_external_id is None for i in batch.items)
+
+
+def test_rejected_token_is_not_configured():
+    fake = FakeApify(status_code=401)
+    with pytest.raises(NotConfigured):
+        connector(fake).fetch(make_source(), None)
+
+
+def test_budget_cap_arithmetic():
+    budget = Budget(remaining_usd=0.5)
+    assert budget.cap(0.2) == 0.2
+    budget.charge(0.45)
+    assert budget.cap(0.2) == 0.05
+    budget.charge(0.04)
+    with pytest.raises(BudgetExhausted):
+        budget.cap(0.2)

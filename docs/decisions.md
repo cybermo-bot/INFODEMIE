@@ -117,3 +117,13 @@ Decisions that shape the product. Newest at the bottom. Each entry: date, decisi
 **Limits.** Chosen on speed and behaviour only. Its quality on triage, stance and Derja is measured in the Stage 2 model benchmark, which may replace it.
 
 **Alternatives.** `qwen3:4b` Thinking (rejected for batch tasks: slow, reasoning leaks into output; may still be benchmarked for verification). Larger models (rejected for now: they do not fit fully in 6 GB of VRAM).
+
+## D17 · Facebook watch-list first, through Apify (2026-10-14)
+
+**Decision.** At Mozart's request (Facebook data needed within two days), the Apify Facebook collector and then the PNSI Capture extension are built before Stage 1b. Each hand-checked public Page is one source (`facebook:<page>`, route `public_contested`, schedule every 12 hours, manual runs by the administrator). Posts are fetched with `apify/facebook-posts-scraper`; comments with `apify/facebook-comments-scraper`, one run per post, only for posts that pass the health keyword filter (off for health institutions' Pages). Nothing is stored before redaction; commenters' names, handles, phones, e-mails and profile links are removed, and the Page's own replies keep the Page name.
+
+**Budget.** Prices on the free plan (checked 2026-10-13): 0.005 USD per post, 0.0025 USD per comment, 0.001 USD per actor start. With the 5 USD monthly cap (`APIFY_MAX_SPEND_USD`), that is about 90 health posts with 20 comments each per month. Every run passes `maxTotalChargeUsd` computed from the remaining budget, so Apify refuses to charge beyond it; when the budget is spent, runs fail with "Budget Apify du mois épuisé".
+
+**Limits.** The keyword list is a draft for native review. Name redaction covers names the collector sees as authors; other names in free text are not detected yet.
+
+**Alternatives.** Our own logged-out collector (later, if Apify costs grow). Waiting for Meta App Review (weeks).

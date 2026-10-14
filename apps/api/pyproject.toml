@@ -8,6 +8,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "celery[redis]>=5.6.3",
     "fastapi>=0.143.0",
+    "httpx2>=2.13.1",
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.15.0",
@@ -20,7 +21,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "httpx2>=2.13.1",
     "pytest>=9.1.1",
     "ruff>=0.17.0",
 ]
@@ -37,7 +37,7 @@ select = ["E", "F", "W", "I", "B", "UP", "S", "N", "SIM", "RUF", "DTZ"]
 ignore = ["S101", "RUF001", "RUF002", "RUF003", "B008", "N818"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S105", "S106"]
+"tests/**" = ["S105", "S106", "S107"]
 "migrations/**" = ["E501"]
 
 [tool.pytest.ini_options]
