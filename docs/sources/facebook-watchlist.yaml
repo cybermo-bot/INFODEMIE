@@ -1,0 +1,63 @@
+# Facebook watch-list supplied by Mozart on 2026-10-22 (was URLS.txt in the old
+# Windows starter folder). Pages are added through POST /api/v1/sources/facebook-pages
+# or the Sources screen. The collector accepts Pages only; groups are listed here
+# for the record and are not collected (see the note on groups below).
+#
+# health_filter: true  = general page, comments collected only for posts that
+#                        match the health keyword list
+# health_filter: false = health institution, every post and its comments
+
+pages:
+  - url: https://www.facebook.com/santetunisie.rns.tn
+    name: Ministère de la Santé (page officielle)
+    kind: health_institution
+    health_filter: false
+    note: "Mozart: page officielle du ministère de la Santé."
+
+  - url: https://www.facebook.com/mosaiquefm
+    name: Mosaïque FM
+    kind: general
+    health_filter: true
+    note: "Mozart: radio connue qui publie aussi sur la santé."
+
+  - url: https://www.facebook.com/DiwanFM
+    name: Diwan FM
+    kind: general
+    health_filter: true
+    note: "Mozart: radio connue qui publie aussi sur la santé."
+
+  - url: https://www.facebook.com/RadioShamsFm
+    name: Shems FM
+    kind: general
+    health_filter: true
+    note: "Mozart: radio connue qui publie aussi sur la santé."
+
+  - url: https://www.facebook.com/Radio.JawharaFM
+    name: Jawhara FM
+    kind: general
+    health_filter: true
+    note: "Mozart: radio connue qui publie aussi sur la santé."
+
+# Groups: not collected. The Apify collector and our URL check accept Pages only.
+# Group posts come from private individuals, so collecting them needs its own
+# decision in docs/decisions.md (legal basis, public groups only, probably through
+# the Capture extension rather than unattended collection).
+groups:
+  - url: https://www.facebook.com/groups/121472527925795
+    note: "Listed by Mozart with the radios. Name not checked."
+  - url: https://www.facebook.com/groups/jaitesteunmedecinatunisjerecommande
+    note: >-
+      Patients recommending doctors. Sensitive: members describe their own
+      health, and PNSI must not infer a person's health status.
+  - url: https://www.facebook.com/groups/312857119816472
+    note: "Name not checked."
+  - url: https://www.facebook.com/groups/415351210395531
+    note: "Name not checked."
+  - url: https://www.facebook.com/groups/a5bar.tounes
+    note: "News group (a5bar tounes)."
+  - url: https://www.facebook.com/groups/350426186955193
+    note: "Name not checked."
+  - url: https://www.facebook.com/groups/1742669792684286
+    note: "Name not checked."
+  - url: https://www.facebook.com/groups/2799823250374199
+    note: "Name not checked."
