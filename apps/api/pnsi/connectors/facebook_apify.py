@@ -20,12 +20,21 @@ one post at a time so `resultsLimit` is unambiguously a per-post limit.
 
 from __future__ import annotations
 
+import base64
+import binascii
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 from urllib.parse import urlsplit
 
-from pnsi.collection.relevance import HEALTH_TERMS_VERSION, health_terms_in
+from pnsi.collection.relevance import (
+    COMMERCIAL_TERMS_VERSION,
+    HEALTH_TERMS_VERSION,
+    commercial_cues_in,
+    health_terms_in,
+    is_commercial,
+)
 from pnsi.connectors.apify import ActorResult, ApifyClient, Budget
 from pnsi.connectors.base import (
     Batch,
@@ -149,20 +158,53 @@ def _group_post_text(post: dict[str, Any]) -> str:
     return post.get("title") or ""
 
 
+def _tagged_names(post: dict[str, Any]) -> list[str]:
+    """Tagged people and Pages, removed only when written in full.
+
+    Verified tags are skipped: they are Pages (ministries, media) or public
+    figures, whose names stay (rule 4 keeps organisation names).
+    """
+    names: list[Any] = []
+    for ref in [*(post.get("textReferences") or []), *(post.get("collaborators") or [])]:
+        if isinstance(ref, dict) and not ref.get("is_verified"):
+            names += [ref.get("short_name"), ref.get("name")]
+    return sorted({n.strip() for n in names if isinstance(n, str) and n.strip()})
+
+
 def _group_post_names(post: dict[str, Any]) -> list[str]:
-    """Every person's name the group post carries: author, tagged people, shared author."""
+    """Names of the people who wrote the group post: author and shared author."""
     names: list[Any] = []
     if isinstance(post.get("user"), dict):
         names.append(post["user"].get("name"))
-    for ref in [*(post.get("textReferences") or []), *(post.get("collaborators") or [])]:
-        if isinstance(ref, dict):
-            names += [ref.get("short_name"), ref.get("name")]
     shared = post.get("sharedPost")
-    if isinstance(shared, dict):
-        for who in (shared.get("user"), shared.get("pageName")):
-            if isinstance(who, dict):
-                names.append(who.get("name"))
+    # A shared Page post carries `pageName`; its author is that Page and keeps its
+    # name (rule 4). Only a person's shared post gives a name to remove.
+    if isinstance(shared, dict) and not shared.get("pageName"):
+        who = shared.get("user")
+        if isinstance(who, dict):
+            names.append(who.get("name"))
     return sorted({n.strip() for n in names if isinstance(n, str) and n.strip()})
+
+
+def _group_post_id(post: dict[str, Any]) -> str | None:
+    """The numeric post id, the same whichever field a run fills.
+
+    Checked on real runs (2026-10-22): `legacyId` equals the last segment of the
+    base64 `id` ("S:_I<author>:VK:<post>") and appears in the post URL.
+    """
+    if str(post.get("legacyId") or "").isdigit():
+        return str(post["legacyId"])
+    raw = post.get("id")
+    if isinstance(raw, str) and raw:
+        try:
+            decoded = base64.b64decode(raw + "=" * (-len(raw) % 4)).decode("utf-8", "replace")
+        except (binascii.Error, ValueError):
+            decoded = ""
+        last = decoded.rsplit(":", 1)[-1]
+        if last.isdigit():
+            return last
+    m = re.search(r"/(?:permalink|posts)/(\d+)", str(post.get("url") or ""))
+    return m.group(1) if m else None
 
 
 def _commenter_names(comment: dict[str, Any]) -> list[str]:
@@ -244,6 +286,7 @@ class _FacebookApify:
                 "comments_per_post": comments_limit,
                 "health_filter": bool(cfg["health_filter"]),
                 "health_terms_version": HEALTH_TERMS_VERSION,
+                "commercial_terms_version": COMMERCIAL_TERMS_VERSION,
                 "apify_runs": [{"actor": self.actor, "status": result.status}],
             }
         )
@@ -254,8 +297,9 @@ class _FacebookApify:
         newest = _parse_time(cursor.get("newest_post_at"))
         filtered_out = 0
         received = 0
+        commercial = 0
         for post in result.items:
-            if post.get("error") or not (post.get("postId") or post.get("id") or post.get("url")):
+            if post.get("error") or not self.post_id(post):
                 if post.get("error") == "no_items":
                     # Apify's answer for an empty window as well as for a private source.
                     batch.coverage["no_items"] = True
@@ -274,23 +318,44 @@ class _FacebookApify:
                 filtered_out += 1
                 continue
             item = self.to_item(post, text, published, terms)
+            cues = commercial_cues_in(
+                text, organisation=item.author_kind is AuthorKind.ORGANISATION
+            )
+            if is_commercial(cues):
+                item.metrics["commercial"] = True
+                item.metrics["commercial_cues"] = cues
+                commercial += 1
             batch.items.append(item)
             relevant.append((post, item))
         budget.charge(_billed(result, received, per_post))
+        storage_deleted = [result.storage_deleted]
+        # A full page of results means older posts in the window may have been
+        # skipped: the cursor jumps to the newest one. Shown, never hidden.
+        batch.coverage["possibly_truncated"] = received >= posts_limit
 
         batch.coverage["posts_fetched"] = received
         batch.coverage["posts_filtered_out"] = filtered_out
+        batch.coverage["posts_commercial"] = commercial
         if newest:
             batch.cursor_after = {"newest_post_at": newest.isoformat()}
 
         with_comments = [(p, i) for p, i in relevant if (self.comment_count(p) or 0) > 0]
         batch.coverage["posts_with_comments"] = len(with_comments)
         self._collect_comments(client, budget, with_comments, comments_limit, url, batch)
+        storage_deleted += batch.coverage.pop("_comment_storage_deleted", [])
+        batch.coverage["apify_storage_deleted"] = all(storage_deleted)
+        if not all(storage_deleted):
+            batch.partial_errors.append(
+                "Copie brute non supprimée chez Apify : à supprimer depuis la console Apify."
+            )
         batch.coverage["cost_usd"] = round(budget.spent_usd, 4)
         return batch
 
     def post_text(self, post: dict[str, Any]) -> str:
         return _post_text(post)
+
+    def post_id(self, post: dict[str, Any]) -> str | None:
+        return post.get("postId") or post.get("url")
 
     def comment_count(self, post: dict[str, Any]) -> int | None:
         return _int(post.get("comments"))
@@ -339,6 +404,9 @@ class _FacebookApify:
                     batch.partial_errors.append(f"Commentaires : {exc}")
                     continue
                 batch.coverage["apify_runs"].append({"actor": COMMENTS_ACTOR, "status": res.status})
+                batch.coverage.setdefault("_comment_storage_deleted", []).append(
+                    res.storage_deleted
+                )
                 comments = [
                     c
                     for c in res.items
@@ -394,7 +462,7 @@ class FacebookPagesApify(_FacebookApify):
     def to_item(self, post: dict[str, Any], text: str, published: datetime | None,
                 terms: list[str]) -> ItemIn:  # fmt: skip
         return ItemIn(
-            external_id=f"facebook:post:{post.get('postId') or post.get('url')}",
+            external_id=f"facebook:post:{self.post_id(post)}",
             raw_text=text,
             published_at=published,
             canonical_url=post.get("url"),
@@ -445,6 +513,9 @@ class FacebookGroupsApify(_FacebookApify):
     def post_text(self, post: dict[str, Any]) -> str:
         return _group_post_text(post)
 
+    def post_id(self, post: dict[str, Any]) -> str | None:
+        return _group_post_id(post)
+
     def _collect_comments(self, client, budget, posts, limit, page_url, batch) -> None:
         # Checked 2026-10-22: "Empty or private data" for group posts, so never paid for.
         batch.coverage["comments"] = "non accessibles sans connexion pour un groupe"
@@ -454,13 +525,13 @@ class FacebookGroupsApify(_FacebookApify):
 
     def to_item(self, post: dict[str, Any], text: str, published: datetime | None,
                 terms: list[str]) -> ItemIn:  # fmt: skip
-        post_id = post.get("legacyId") or post.get("id") or post.get("url")
         return ItemIn(
-            external_id=f"facebook:group-post:{post_id}",
+            external_id=f"facebook:group-post:{_group_post_id(post)}",
             raw_text=text,
             published_at=published,
             author_kind=AuthorKind.INDIVIDUAL,
             known_names=_group_post_names(post),
+            known_full_names=_tagged_names(post),
             metrics=_metrics(
                 reactions=_int(post.get("likesCount")),
                 comments=_int(post.get("commentsCount")),

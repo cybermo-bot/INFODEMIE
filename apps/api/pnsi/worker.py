@@ -58,7 +58,7 @@ def collect_run(run_id: str) -> str:
 @celery_app.task(name="pnsi.collect_due")
 def collect_due() -> int:
     """Queue a run for every enabled source whose interval has elapsed."""
-    from pnsi.collection.service import active_run, create_run
+    from pnsi.collection.service import active_run, create_run, fail_stale_runs
     from pnsi.db import get_sessionmaker
     from pnsi.enums import RunTrigger
     from pnsi.models import Source
@@ -66,6 +66,7 @@ def collect_due() -> int:
     started = 0
     now = datetime.now(UTC)
     with get_sessionmaker()() as db:
+        fail_stale_runs(db)
         for source in db.scalars(select(Source).where(Source.enabled.is_(True))).all():
             interval = schedule_interval(source.schedule)
             if interval is None or not (source.config or {}).get("connector"):

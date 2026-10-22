@@ -46,8 +46,12 @@ class ItemIn:
     canonical_url: str | None = None
     author_kind: AuthorKind = AuthorKind.UNKNOWN
     author_org_name: str | None = None
-    # Names of individuals seen in this thread, removed from the text.
+    # Names of individuals seen in this thread, removed from the text, in full
+    # and word by word.
     known_names: list[str] = field(default_factory=list)
+    # Names removed only when written in full: tagged entries, which can be
+    # Pages ("Ministère de la Santé publique") as well as people.
+    known_full_names: list[str] = field(default_factory=list)
     metrics: dict[str, Any] = field(default_factory=dict)
 
 

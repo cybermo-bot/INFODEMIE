@@ -120,7 +120,7 @@ Decisions that shape the product. Newest at the bottom. Each entry: date, decisi
 
 ## D17 · Facebook watch-list first, through Apify (2026-10-14)
 
-**Decision.** At Mozart's request (Facebook data needed within two days), the Apify Facebook collector and then the PNSI Capture extension are built before Stage 1b. Each hand-checked public Page is one source (`facebook:<page>`, route `public_contested`, schedule every 12 hours, manual runs by the administrator). Posts are fetched with `apify/facebook-posts-scraper`; comments with `apify/facebook-comments-scraper`, one run per post, only for posts that pass the health keyword filter (off for health institutions' Pages). Nothing is stored before redaction; commenters' names, handles, phones, e-mails and profile links are removed, and the Page's own replies keep the Page name.
+**Decision.** At Mozart's request (Facebook data needed within two days), the Apify Facebook collector and then the PNSI Capture extension are built before Stage 1b. Each hand-checked public Page is one source (`facebook:<page>`, route `public_contested`, manual runs by the administrator; schedule `manual` since D18 until a budget is chosen). Posts are fetched with `apify/facebook-posts-scraper`; comments with `apify/facebook-comments-scraper`, one run per post, only for posts that pass the health keyword filter (off for health institutions' Pages). Nothing is stored before redaction; commenters' names, handles, phones, e-mails and profile links are removed, and the Page's own replies keep the Page name.
 
 **Budget.** Prices on the free plan (checked 2026-10-13): 0.005 USD per post, 0.0025 USD per comment, 0.001 USD per actor start. Corrected 2026-10-22 (D18): each post also costs 0.002 USD when a date filter is set, which we always do, so 0.007 USD per post. With the 5 USD monthly cap (`APIFY_MAX_SPEND_USD`), that is about 70 health posts with 20 comments each per month. Every run passes `maxTotalChargeUsd` computed from the remaining budget, so Apify refuses to charge beyond it; when the budget is spent, runs fail with "Budget Apify du mois épuisé".
 
@@ -142,5 +142,17 @@ Decisions that shape the product. Newest at the bottom. Each entry: date, decisi
 
 **Limits.** Names that appear in free text without being tagged (for example a doctor named in a recommendation group) are not detected yet; the same limit as D17, more frequent in groups. One group (J'ai testé un médecin en Tunisie) is sensitive because members describe their own health; its health filter is on and PNSI never infers a person's health status.
 
+**Safeguards added after the council review (2026-10-22).** Every source created through the API starts with schedule `manual`. After reading a run, the connector deletes Apify's copy of the raw items (dataset and key-value store) and records `apify_storage_deleted` in the coverage; a failed deletion is shown as a partial error. A run that returns a full page of posts records `possibly_truncated`. Name redaction keeps particles and first names that are everyday words (version r3), so place and organisation names survive; a shared Page post keeps the Page name; tagged entries are removed only when written in full and verified tags (Pages, public figures) are kept. `make reredact` re-applies the current redaction to stored texts and revisions and writes an audit event.
+
 **Alternatives.** Groups only through the Capture extension (route `assisted`, slower). Not collecting groups (rejected by Mozart).
+
+## D19 · Commercial posts are tagged, not dropped (2026-10-22)
+
+**Decision.** A post with at least two selling cues, one of them strong (delivery, order, "للبيع", "اطلب", "inbox", a price written with its currency...), is stored with `metrics.commercial = true` and the cues found (`metrics.commercial_cues`, list version `commercial-cues-draft-2026-10-22`). `GET /api/v1/items?ads=false` leaves them out, `ads=true` shows only them; screens hide them by default with a visible switch. Each run counts them (`posts_commercial`).
+
+**Reason.** Mozart asked to remove or solve the ads found in unfiltered groups (Régime Tayibat). Dropping them would lose real signals: in health groups, ads often sell unproven remedies, which the concept note asks PNSI to detect (5.4.1, "remèdes non scientifiques ou pseudo-médicaux"). A single cue is not enough because news posts mention prices ("le prix des médicaments"), and weak cues alone ("disponible", "متوفر", "سعر", a phone number) also describe shortages, free campaigns and official hotlines; a phone number never counts for an organisation's post.
+
+**Limits.** Keyword cues, not a classifier; the triage model of Stage 4 replaces them. Items stored before this date are not tagged.
+
+**Alternatives.** Drop ads at collection (rejected: loses fake-remedy sales). Tag only health-product ads (later, with the triage model).
 

@@ -22,10 +22,15 @@ def list_items(
     *,
     source_id: uuid.UUID | None = None,
     route: CollectionRoute | None = None,
+    ads: bool | None = None,
     offset: int = 0,
     limit: int = 50,
 ) -> tuple[Sequence[ContentItem], dict[uuid.UUID, int], dict[uuid.UUID, Source]]:
-    """Top-level items newest first, with their reply counts and sources."""
+    """Top-level items newest first, with their reply counts and sources.
+
+    `ads`: None for everything, False to leave out posts tagged commercial
+    (decision D19), True for those posts only.
+    """
     ensure_permission(principal, Permission.SIGNALS_READ)
     query = select(ContentItem).where(
         ContentItem.institution_id == principal.institution_id,
@@ -36,6 +41,9 @@ def list_items(
         query = query.where(ContentItem.source_id == source_id)
     if route is not None:
         query = query.where(ContentItem.route == route)
+    if ads is not None:
+        tagged = ContentItem.metrics.has_key("commercial")
+        query = query.where(tagged if ads else ~tagged)
     sort_key = func.coalesce(ContentItem.published_at, ContentItem.collected_at)
     items = db.scalars(
         query.order_by(sort_key.desc(), ContentItem.id).offset(offset).limit(limit)

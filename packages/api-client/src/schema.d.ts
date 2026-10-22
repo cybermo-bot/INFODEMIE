@@ -1026,6 +1026,8 @@ export interface operations {
             query?: {
                 source_id?: string | null;
                 route?: components["schemas"]["CollectionRoute"] | null;
+                /** @description false: sans les annonces commerciales ; true : annonces seulement */
+                ads?: boolean | null;
                 offset?: number;
                 limit?: number;
             };

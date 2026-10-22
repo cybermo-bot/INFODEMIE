@@ -1725,6 +1725,24 @@
             }
           },
           {
+            "description": "false: sans les annonces commerciales ; true : annonces seulement",
+            "in": "query",
+            "name": "ads",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "false: sans les annonces commerciales ; true : annonces seulement",
+              "title": "Ads"
+            }
+          },
+          {
             "in": "query",
             "name": "offset",
             "required": false,

@@ -79,6 +79,7 @@ def load(db: Session, path: Path = WATCHLIST) -> list[tuple[str, str]]:
 
 def collect(db: Session, only: str | None = None) -> list[dict[str, Any]]:
     """Run every enabled Facebook source now. Returns one summary per run."""
+    collection.fail_stale_runs(db)
     sources = db.scalars(select(Source).where(Source.enabled.is_(True)).order_by(Source.name))
     summaries = []
     for source in sources:

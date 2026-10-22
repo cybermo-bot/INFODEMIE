@@ -1,4 +1,4 @@
-"""Health relevance filter applied before storing items from general sources.
+"""Health relevance filter and commercial-post cues, applied before storing items.
 
 A keyword filter, not a classifier: the triage model comes in Stage 4. The
 terms start from `docs/sources-plan.md` section 3 plus general health words.
@@ -91,3 +91,81 @@ def health_terms_in(text: str | None) -> list[str]:
         if term in norm:
             found.add(term)
     return sorted(found)
+
+
+# Commercial posts (decision D19). Ads are tagged, never dropped: in health
+# groups they often sell unproven remedies, which is itself a signal (concept
+# note 5.4.1, "remèdes non scientifiques"). Draft list, native review needed.
+COMMERCIAL_TERMS_VERSION = "commercial-cues-draft-2026-10-22"
+
+# Strong cues say "I am selling": one is required. Weak cues ("disponible",
+# "سعر", a phone number) also appear in shortages, free campaigns and official
+# hotlines, so they only add weight (audit of 2026-10-22).
+LATIN_STRONG: tuple[str, ...] = (
+    "livraison", "commande", "commandez", "inbox", "en privé", "en prive", "à vendre",
+    "a vendre", "boutique", "paiement", "promo", "achat",
+)  # fmt: skip
+LATIN_WEAK: tuple[str, ...] = (
+    "prix", "disponible", "dispo", "en stock", "dinars", "tnd", "remise", "soum", "9adech",
+    "b9adech",
+)  # fmt: skip
+ARABIC_STRONG: tuple[str, ...] = (
+    "للبيع", "اطلب", "التوصيل", "توصيل", "عرض خاص", "متجر", "طلبيه", "انبوكس", "الدفع",
+)  # fmt: skip
+ARABIC_WEAK: tuple[str, ...] = (
+    "السعر", "سعر", "متوفر", "تخفيض", "ثمن", "دينار", "د.ت", "بقداش",
+)  # fmt: skip
+
+_COMMERCIAL_WHOLE_WORD = {"prix", "promo", "dispo", "tnd", "soum", "remise", "achat"}
+_PHONE_CUE = re.compile(r"(?:\d[\s.-]?){7,11}\d")
+# A price written as a number with a currency: "45 دينار", "30 dt", "12,500 TND".
+_PRICE = re.compile(
+    r"\d+(?:[.,]\d+)?\s*(?:dinars?|dt|tnd|د\.?\s?ت|دينار|مليم|millimes?)(?![a-z])",
+    re.IGNORECASE,
+)
+_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+STRONG_CUES = frozenset(LATIN_STRONG + ARABIC_STRONG + ("prix affiché",))
+
+
+@lru_cache
+def _latin_commercial_pattern() -> re.Pattern[str]:
+    terms = {_strip_accents(t.lower()) for t in LATIN_STRONG + LATIN_WEAK}
+    body = "|".join(
+        r"\s+".join(re.escape(p) for p in t.split()) for t in sorted(terms, key=len, reverse=True)
+    )
+    return re.compile(rf"(?<![a-z0-9])(?:{body})", re.IGNORECASE)
+
+
+def commercial_cues_in(text: str | None, *, organisation: bool = False) -> list[str]:
+    """Selling cues found in `text` (raw, before redaction).
+
+    "prix affiché" marks a price written with its currency (strong); "téléphone"
+    marks a phone number (weak, and ignored for organisations, whose posts often
+    give an official hotline).
+    """
+    if not text:
+        return []
+    norm = normalize_for_match(text)
+    latin = _strip_accents(norm)
+    found: set[str] = set()
+    for m in _latin_commercial_pattern().finditer(latin):
+        term = m.group(0)
+        end = m.end()
+        if term in _COMMERCIAL_WHOLE_WORD and end < len(latin) and latin[end].isalnum():
+            continue
+        found.add(" ".join(term.split()))
+    for term in ARABIC_STRONG + ARABIC_WEAK:
+        if term in norm:
+            found.add(term)
+    digits = text.translate(_DIGITS)
+    if _PRICE.search(normalize_for_match(digits)):
+        found.add("prix affiché")
+    if not organisation and _PHONE_CUE.search(digits):
+        found.add("téléphone")
+    return sorted(found)
+
+
+def is_commercial(cues: list[str]) -> bool:
+    """At least one strong cue and two cues in all."""
+    accented = {_strip_accents(c) for c in STRONG_CUES} | STRONG_CUES
+    return len(cues) >= 2 and any(c in accented for c in cues)

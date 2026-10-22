@@ -26,11 +26,15 @@ def list_items(
     db: DbSession,
     source_id: uuid.UUID | None = None,
     route: CollectionRoute | None = None,
+    ads: Annotated[
+        bool | None,
+        Query(description="false: sans les annonces commerciales ; true : annonces seulement"),
+    ] = None,
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> ItemPage:
     items, counts, sources = item_service.list_items(
-        db, principal, source_id=source_id, route=route, offset=offset, limit=limit + 1
+        db, principal, source_id=source_id, route=route, ads=ads, offset=offset, limit=limit + 1
     )
     page = [ItemOut.build(i, sources[i.source_id], counts.get(i.id, 0)) for i in items[:limit]]
     return ItemPage(items=page, next_offset=offset + limit if len(items) > limit else None)

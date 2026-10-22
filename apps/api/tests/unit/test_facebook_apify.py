@@ -271,7 +271,8 @@ def test_group_posts_are_individuals_with_names_handed_to_redaction():
         # No link back to a post written by a private person.
         assert item.canonical_url is None
     first = by_id["facebook:group-post:800000000000001"]
-    assert {"Exemplia Testova", "Rym Fictive"} <= set(first.known_names)
+    assert "Exemplia Testova" in first.known_names
+    assert first.known_full_names == ["Rym Fictive"]
     shared = by_id["facebook:group-post:800000000000003"]
     assert "grippe" in shared.raw_text
     assert "Partageur Fictif" in shared.known_names
@@ -283,3 +284,123 @@ def test_group_comments_are_never_requested():
     fake = FakeApify()
     group_connector(fake).fetch(make_group(comments_per_post=20), None)
     assert COMMENTS_ACTOR not in [r["actor"] for r in fake.runs]
+
+
+def test_shared_page_post_keeps_the_page_name():
+    post = {
+        "legacyId": "1",
+        "user": {"name": "Exemplia Testova"},
+        "text": "",
+        "sharedPost": {
+            "text": "Communiqué du Ministère de la Santé publique sur la rougeole.",
+            "pageName": {"name": "Ministère de la Santé publique"},
+            "user": {"name": "Ministère de la Santé publique"},
+        },
+    }
+    fake = FakeApify(group_posts=[post])
+    batch = group_connector(fake).fetch(make_group(health_filter=False), None)
+    assert batch.items[0].known_names == ["Exemplia Testova"]
+
+
+def test_group_post_id_is_stable_across_fields():
+    from pnsi.connectors.facebook_apify import _group_post_id
+
+    full = {
+        "legacyId": "800000000000001",
+        "id": "UzpfSTEwMDAwMDAwMDAwMDAwMTpWSzo4MDAwMDAwMDAwMDAwMDE=",
+        "url": "https://www.facebook.com/groups/g/permalink/800000000000001/",
+    }
+    assert _group_post_id(full) == "800000000000001"
+    assert _group_post_id({k: v for k, v in full.items() if k != "legacyId"}) == "800000000000001"
+    assert _group_post_id({"url": full["url"]}) == "800000000000001"
+    assert _group_post_id({"id": "not-base64!"}) is None
+
+
+def test_apify_copy_of_raw_items_is_deleted_after_reading():
+    fake = FakeApify()
+    batch = connector(fake).fetch(make_source(), None)
+    # Posts run and comments run: dataset and key-value store of each.
+    assert sorted(fake.deleted) == [
+        "/v2/datasets/ds-0",
+        "/v2/datasets/ds-1",
+        "/v2/key-value-stores/kv-0",
+        "/v2/key-value-stores/kv-1",
+    ]
+    assert batch.coverage["apify_storage_deleted"] is True
+    assert "_comment_storage_deleted" not in batch.coverage
+
+
+def test_failed_deletion_is_reported():
+    fake = FakeApify(delete_ok=False)
+    batch = connector(fake).fetch(make_source(comments_per_post=0), None)
+    assert batch.coverage["apify_storage_deleted"] is False
+    assert any("Copie brute" in e for e in batch.partial_errors)
+
+
+def test_full_page_of_posts_is_flagged_as_possibly_truncated():
+    fake = FakeApify()
+    batch = connector(fake).fetch(make_source(posts_per_run=3, comments_per_post=0), None)
+    assert batch.coverage["possibly_truncated"] is True
+    batch = connector(FakeApify()).fetch(make_source(comments_per_post=0), None)
+    assert batch.coverage["possibly_truncated"] is False
+
+
+def test_ads_are_tagged_not_dropped():
+    ad = {
+        "legacyId": "2",
+        "user": {"name": "Vendeur Fictif"},
+        "text": "مكمل طبيعي يعالج السكري، متوفر الآن، السعر 45 دينار، 98765432",
+    }
+    news = {"legacyId": "3", "text": "Le prix des médicaments contre le diabète augmente."}
+    fake = FakeApify(group_posts=[ad, news])
+    batch = group_connector(fake).fetch(make_group(health_filter=False), None)
+    by_id = {i.external_id: i for i in batch.items}
+    tagged = by_id["facebook:group-post:2"]
+    assert tagged.metrics["commercial"] is True
+    assert "téléphone" in tagged.metrics["commercial_cues"]
+    assert "commercial" not in by_id["facebook:group-post:3"].metrics
+    assert batch.coverage["posts_commercial"] == 1
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Campagne de vaccination gratuite, disponible dans les centres de santé. "
+        "Numéro vert : 80 101 919",
+        "اللقاح متوفر مجانا في مراكز الصحة الأساسية، الرقم الأخضر 80101919",
+        "الدواء غير متوفر في الصيدليات، سعر البديل مرتفع",
+        "Le prix des médicaments contre le diabète augmente.",
+    ],
+)
+def test_health_signals_are_not_ads(text):
+    from pnsi.collection.relevance import commercial_cues_in, is_commercial
+
+    assert not is_commercial(commercial_cues_in(text))
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "مكمل طبيعي يعالج السكري، متوفر الآن، السعر 45 دينار",
+        "Tisane contre la grippe, livraison partout, prix en inbox",
+        "عسل حر للبيع، التوصيل لكل الولايات 98765432",
+    ],
+)
+def test_selling_posts_are_ads(text):
+    from pnsi.collection.relevance import commercial_cues_in, is_commercial
+
+    assert is_commercial(commercial_cues_in(text))
+
+
+def test_verified_tag_keeps_its_name():
+    post = {
+        "legacyId": "5",
+        "user": {"name": "Exemplia Testova"},
+        "text": "Merci au Ministère de la Santé publique pour la campagne de vaccination.",
+        "textReferences": [
+            {"short_name": "Ministère de la Santé publique", "is_verified": True},
+            {"short_name": "Rym Fictive", "is_verified": False},
+        ],
+    }
+    batch = group_connector(FakeApify(group_posts=[post])).fetch(make_group(), None)
+    assert batch.items[0].known_full_names == ["Rym Fictive"]

@@ -314,3 +314,55 @@ def test_admin_adds_group_without_comments(seeded, make_client, db):
     login(analyst, Role.ANALYSTE, seeded["analyste"])
     res = analyst.post("/api/v1/sources/facebook-groups", json=body, headers=csrf_headers(analyst))
     assert res.status_code == 403
+
+
+def test_items_can_leave_out_ads(seeded, make_client, db, group):
+    fake = FakeApify()
+    ad = {
+        "legacyId": "800000000000009",
+        "time": "2026-10-12T18:00:00.000Z",
+        "user": {"name": "Vendeur Fictif"},
+        "text": "Tisane contre la grippe, livraison partout, prix 30 dinars en inbox.",
+    }
+    fake.group_posts = [*fake.group_posts, ad]
+    run_with(db, group, fake)
+    analyst = make_client()
+    login(analyst, Role.ANALYSTE, seeded["analyste"])
+    everything = analyst.get("/api/v1/items").json()["items"]
+    without_ads = analyst.get("/api/v1/items", params={"ads": "false"}).json()["items"]
+    only_ads = analyst.get("/api/v1/items", params={"ads": "true"}).json()["items"]
+    assert len(everything) == 3 and len(without_ads) == 2 and len(only_ads) == 1
+    assert only_ads[0]["metrics"]["commercial"] is True
+
+
+def test_finished_run_is_never_executed_again(db, page):
+    fake = FakeApify()
+    run = run_with(db, page, fake)
+    calls = len(fake.runs)
+    again = collection.execute_run(
+        db, run.id, settings=Settings(apify_token="fake"),
+        connector_factory=lambda s, st: FacebookPagesApify(st, client_factory=fake.client),
+    )  # fmt: skip
+    assert again.status is RunStatus.PARTIAL and len(fake.runs) == calls
+
+
+def test_crash_while_storing_fails_the_run_and_keeps_nothing(db, page, monkeypatch):
+    def boom(*_a, **_k):
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(collection, "_store", boom)
+    run = run_with(db, page, FakeApify())
+    assert run.status is RunStatus.FAILED
+    assert "enregistrement" in run.error
+    assert db.scalars(select(ContentItem)).all() == []
+
+
+def test_stale_runs_are_marked_failed(db, page):
+    from datetime import timedelta
+
+    run = collection.create_run(db, page, RunTrigger.SCHEDULED)
+    run.created_at = collection.now() - timedelta(hours=2)
+    db.commit()
+    assert collection.fail_stale_runs(db) == 1
+    db.refresh(run)
+    assert run.status is RunStatus.FAILED and "interrompue" in run.error

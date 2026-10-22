@@ -70,6 +70,8 @@ Done on 2026-10-22 (decision D18):
 - Redaction fixed (version r2): phone numbers glued to Arabic words were not caught. Found by scanning the first real data; the 46 stored items were re-redacted.
 - First real collection: Ministry of Health page (3 posts, 23 comments), groups "Amis du ministère de la Santé publique" and "Régime Tayibat" (10 posts each). 46 items, about 0.22 USD, no e-mail, handle, profile link or phone left in the stored text.
 
+Fixed after the council review (2026-10-22, second pass): precise name redaction r3 (places and everyday words kept), handles glued to Arabic, stable group post ids, runs claimed under a lock and never re-executed, crash while storing marks the run failed, stale runs swept, schedule `manual` by default, Apify raw copies deleted after each run, truncated runs flagged, ads tagged (D19), `make reredact` audited. Note: items stored before r3 will each be counted once as "revised" the next time a run sees them (their text changes with the precise redaction); that one-time rise is expected. Waiting on Mozart: approval to delete the raw copies Apify still holds from the first runs of 2026-10-22 (blocked by the safety check, needs his go-ahead).
+
 Next, in order:
 1. Web screens: Sources (watch-list, add a Page or group, run, status and errors) and Signaux (posts with their comments, route label, run). Messages in fr, ar, en.
 2. Mozart decides the Apify budget (free 5 USD covers about a week of daily collection of the whole list); then switch the schedule from `manual`.

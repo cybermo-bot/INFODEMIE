@@ -165,7 +165,8 @@ def _add_facebook_source(
         route=connector.route,
         basis=connector.basis,
         enabled=True,
-        schedule="every:12h",
+        # Nothing collects on its own until Mozart sets a budget (decision D18).
+        schedule="manual",
         config=config,
     )
     db.add(source)

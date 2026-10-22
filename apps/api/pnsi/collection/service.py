@@ -29,8 +29,27 @@ from pnsi.settings import Settings, get_settings
 
 log = get_logger(__name__)
 
-# A run stuck in queued or running longer than this no longer blocks a new one.
-STALE_RUN_AFTER = timedelta(hours=1)
+# A run queued this long, or running this long since it started, is abandoned:
+# it no longer blocks a new one and is marked failed. Runs take up to about 20
+# minutes (posts, then comment batches), so "running" gets a wider margin.
+STALE_QUEUED_AFTER = timedelta(hours=1)
+STALE_RUNNING_AFTER = timedelta(hours=2)
+
+
+def _stale(now_: datetime):
+    from sqlalchemy import and_, or_
+
+    return or_(
+        and_(
+            CollectionRun.status == RunStatus.QUEUED,
+            CollectionRun.created_at <= now_ - STALE_QUEUED_AFTER,
+        ),
+        and_(
+            CollectionRun.status == RunStatus.RUNNING,
+            func.coalesce(CollectionRun.started_at, CollectionRun.created_at)
+            <= now_ - STALE_RUNNING_AFTER,
+        ),
+    )
 
 
 def sha256(value: str) -> str:
@@ -47,10 +66,28 @@ def active_run(db: Session, source: Source) -> CollectionRun | None:
         .where(
             CollectionRun.source_id == source.id,
             CollectionRun.status.in_([RunStatus.QUEUED, RunStatus.RUNNING]),
-            CollectionRun.created_at > now() - STALE_RUN_AFTER,
+            ~_stale(now()),
         )
         .limit(1)
     )
+
+
+def fail_stale_runs(db: Session) -> int:
+    """Mark abandoned queued or running runs as failed (rule 9)."""
+    stale = db.scalars(select(CollectionRun).where(_stale(now()))).all()
+    for run in stale:
+        source = db.get(Source, run.source_id)
+        reason = "Collecte interrompue : aucune fin enregistrée dans le délai prévu."
+        run.status = RunStatus.FAILED
+        run.error = reason
+        run.finished_at = now()
+        if source is not None:
+            source.last_error = reason
+            source.last_error_at = run.finished_at
+    if stale:
+        db.commit()
+        log.warning("collection_runs_marked_stale", count=len(stale))
+    return len(stale)
 
 
 def create_run(db: Session, source: Source, trigger: RunTrigger) -> CollectionRun:
@@ -86,7 +123,7 @@ def _store(
     parent_id: uuid.UUID | None,
     collected_at: datetime,
 ) -> tuple[str, ContentItem]:
-    redacted = redact(item.raw_text, item.known_names)
+    redacted = redact(item.raw_text, item.known_names, full_only=item.known_full_names)
     text = redacted.text
     content_hash = sha256(text)
     ext_hash = sha256(item.external_id)
@@ -180,9 +217,15 @@ def execute_run(
     connector_factory: Callable[[Source, Settings], Connector] = connector_for,
 ) -> CollectionRun:
     settings = settings or get_settings()
-    run = db.get(CollectionRun, run_id)
+    # Claim the run under a row lock: a task delivered twice, or the CLI and the
+    # worker at once, must not run (and pay for) the same collection twice.
+    run = db.get(CollectionRun, run_id, with_for_update=True)
     if run is None:
         raise LookupError(f"collection run {run_id} not found")
+    if run.status is not RunStatus.QUEUED:
+        db.rollback()
+        log.warning("collection_run_not_queued", run_id=str(run_id), status=run.status.value)
+        return run
     source = db.get(Source, run.source_id)
     assert source is not None
 
@@ -204,7 +247,14 @@ def execute_run(
         _fail(db, run, source, f"Erreur interne du connecteur ({type(exc).__name__}).")
         return run
 
-    store_batch(db, source, run, batch)
+    try:
+        store_batch(db, source, run, batch)
+    except Exception as exc:
+        # Nothing half-stored survives, and the run never stays "running".
+        db.rollback()
+        log.exception("collection_store_crashed", source_key=source.key)
+        _fail(db, run, source, f"Erreur interne à l'enregistrement ({type(exc).__name__}).")
+        return run
     run.cursor_after = batch.cursor_after or run.cursor_before
     run.finished_at = now()
     if batch.partial_errors:

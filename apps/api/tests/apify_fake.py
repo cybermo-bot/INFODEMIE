@@ -31,6 +31,7 @@ class FakeApify:
         status_code: int = 200,
         # False reproduces Apify reporting 0 USD on a just-finished pay-per-event run.
         report_cost: bool = True,
+        delete_ok: bool = True,
     ) -> None:
         self.used_usd = used_usd
         self.account_max_usd = account_max_usd
@@ -42,12 +43,17 @@ class FakeApify:
         self.comment_run_cost = comment_run_cost
         self.status_code = status_code
         self.runs: list[dict[str, Any]] = []
+        self.deleted: list[str] = []
+        self.delete_ok = delete_ok
         self._datasets: dict[str, list[dict[str, Any]]] = {}
 
     def handler(self, request: httpx2.Request) -> httpx2.Response:
         if self.status_code != 200:
             return httpx2.Response(self.status_code, json={"error": {"message": "fake error"}})
         path = request.url.path
+        if request.method == "DELETE":
+            self.deleted.append(path)
+            return httpx2.Response(204 if self.delete_ok else 500)
         if path == "/v2/users/me/limits":
             limits = {"maxMonthlyUsageUsd": self.account_max_usd} if self.account_max_usd else {}
             return httpx2.Response(
@@ -89,6 +95,7 @@ class FakeApify:
                         "id": f"run-{n}",
                         "status": "SUCCEEDED",
                         "defaultDatasetId": dataset,
+                        "defaultKeyValueStoreId": f"kv-{n}",
                         "usageTotalUsd": cost if self.report_cost else 0.0,
                     }
                 },

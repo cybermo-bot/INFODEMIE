@@ -50,6 +50,8 @@ class ActorResult:
     status: str
     items: list[dict[str, Any]] = field(default_factory=list)
     cost_usd: float = 0.0
+    # True once Apify's copy of the raw items is deleted (see `run_actor`).
+    storage_deleted: bool = False
 
 
 @dataclass
@@ -157,7 +159,10 @@ class ApifyClient:
         while run["status"] not in TERMINAL:
             if time.monotonic() > deadline:
                 self._request("POST", f"/v2/actor-runs/{run_id}/abort")
-                raise ConnectorError(f"Course Apify trop longue, interrompue ({actor_id}).")
+                kept = (
+                    "" if self.delete_run_storage(run) else " Copie brute non supprimée chez Apify."
+                )
+                raise ConnectorError(f"Course Apify trop longue, interrompue ({actor_id}).{kept}")
             run = self._request("GET", f"/v2/actor-runs/{run_id}", params={"waitForFinish": 60})[
                 "data"
             ]
@@ -166,11 +171,41 @@ class ApifyClient:
         cost = run_cost_usd(run)
         log.info("apify_run_finished", actor=actor_id, status=status, cost_usd=cost)
         if status == "FAILED":
-            raise ConnectorError(f"La course Apify a échoué ({actor_id}).")
+            # Even a failed run can hold raw items: delete them before reporting.
+            kept = "" if self.delete_run_storage(run) else " Copie brute non supprimée chez Apify."
+            raise ConnectorError(f"La course Apify a échoué ({actor_id}).{kept}")
         # SUCCEEDED, or TIMED-OUT / ABORTED with what was collected so far.
         items = self._request(
             "GET",
             f"/v2/datasets/{run['defaultDatasetId']}/items",
             params={"clean": "true", "format": "json", "limit": max_items},
         )
-        return ActorResult(run_id=run_id, status=status, items=list(items), cost_usd=cost)
+        deleted = self.delete_run_storage(run)
+        return ActorResult(
+            run_id=run_id, status=status, items=list(items), cost_usd=cost, storage_deleted=deleted
+        )
+
+    def delete_run_storage(self, run: dict[str, Any]) -> bool:
+        """Delete Apify's copy of a run's raw output (names, links, texts).
+
+        The dataset holds the items; the key-value store can hold page snapshots
+        saved by the actor. Our redacted copy is the only one we keep (rule 4).
+        Returns False, without raising, when Apify could not delete them.
+        """
+        ok = True
+        for path in (
+            f"/v2/datasets/{run.get('defaultDatasetId')}",
+            f"/v2/key-value-stores/{run.get('defaultKeyValueStoreId')}",
+        ):
+            if path.endswith("/None"):
+                continue
+            try:
+                res = self._http.request("DELETE", path)
+            except httpx2.HTTPError:
+                ok = False
+                continue
+            if res.status_code not in (204, 404):
+                ok = False
+        if not ok:
+            log.warning("apify_storage_not_deleted", run_id=run.get("id"))
+        return ok

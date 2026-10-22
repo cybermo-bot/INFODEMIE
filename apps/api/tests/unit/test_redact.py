@@ -79,3 +79,26 @@ def test_phone_glued_to_a_word_is_removed(text):
 def test_arabizi_digits_are_not_phones():
     out = redact("s7a w l9a7 mte3 l'3am hedha")
     assert out.text == "s7a w l9a7 mte3 l'3am hedha"
+
+
+def test_known_name_does_not_erase_places_or_everyday_words():
+    out = redact("Ali Ben Salah habite à Ben Arous. Merci Ali.", ["Ali Ben Salah"]).text
+    assert out == "[nom] habite à Ben Arous. Merci [nom]."
+    # نور means light: the person's full name goes, the word stays.
+    out = redact("نور الشمس جميل، شكرا نور الهدى", ["نور الهدى"]).text
+    assert out == "نور الشمس جميل، شكرا [nom]"
+
+
+def test_handle_glued_to_arabic_is_removed():
+    out = redact("مرحبا@exemple_user شكرا")
+    assert "exemple_user" not in out.text and PLACEHOLDER["handle"] in out.text
+
+
+def test_single_word_common_name_keeps_the_word():
+    out = redact("نور الشمس، شكرا", ["نور"]).text
+    assert out == "نور الشمس، شكرا"
+
+
+def test_full_only_names_need_the_full_name():
+    out = redact("Rym Fictive dit merci", [], full_only=["Rym Fictive"]).text
+    assert out == "[nom] dit merci"
