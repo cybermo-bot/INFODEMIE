@@ -59,3 +59,23 @@ def test_short_name_tokens_are_not_used_alone():
 
 def test_dates_with_slashes_are_kept():
     assert redact("Campagne du 15/10/2026 au 30/10/2026").text.count("2026") == 2
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "متوفر لدى المحل مول98765432",
+        "اتصل98765432للحجز",
+        "tel98765432",
+        "Commande au 98765432€ près",
+    ],
+)
+def test_phone_glued_to_a_word_is_removed(text):
+    out = redact(text)
+    assert "98765432" not in out.text
+    assert PLACEHOLDER["phone"] in out.text
+
+
+def test_arabizi_digits_are_not_phones():
+    out = redact("s7a w l9a7 mte3 l'3am hedha")
+    assert out.text == "s7a w l9a7 mte3 l'3am hedha"

@@ -62,15 +62,21 @@ Done and committed (9316e06), 163 backend tests passing:
 - API: `GET /sources`, `POST /sources/facebook-pages`, `PATCH /sources/{id}`, `POST|GET /sources/{id}/runs`, `GET /runs/{id}`, `GET /items`, `GET /items/{id}`. Celery task `pnsi.collect_run` and a 15-minute schedule check.
 - Tests use synthetic fixtures shaped on the actors' published schema (`apps/api/tests/fixtures/apify/README.md`); to be complemented with a recorded real response once the token works.
 
+Done on 2026-10-22 (decision D18):
+- Apify token in `.env`, checked against the API (free plan).
+- Watch-list from Mozart in `docs/sources/facebook-watchlist.yaml`: 8 Pages, 6 public groups (2 excluded: one inactive since 2013, one private or empty). `make watchlist` loads it with schedule `manual`, `make collect` runs it.
+- Public groups: posts only (comments not reachable logged out), authors redacted, no post link kept.
+- Budget guard fixed: Apify reports 0 USD on a just-finished run, and posts cost 0.007 USD with the date filter.
+- Redaction fixed (version r2): phone numbers glued to Arabic words were not caught. Found by scanning the first real data; the 46 stored items were re-redacted.
+- First real collection: Ministry of Health page (3 posts, 23 comments), groups "Amis du ministère de la Santé publique" and "Régime Tayibat" (10 posts each). 46 items, about 0.22 USD, no e-mail, handle, profile link or phone left in the stored text.
+
 Next, in order:
-1. Web screens: Sources (watch-list, add a Page, run, status and errors) and Signaux (posts with their comments, route label, run). Messages in fr, ar, en.
-2. First real run once `APIFY_TOKEN` is in `.env` and Mozart has given 5 to 10 checked Page URLs.
+1. Web screens: Sources (watch-list, add a Page or group, run, status and errors) and Signaux (posts with their comments, route label, run). Messages in fr, ar, en.
+2. Mozart decides the Apify budget (free 5 USD covers about a week of daily collection of the whole list); then switch the schedule from `manual`.
 3. PNSI Capture extension MVP (route `assisted`): one click on a Facebook post records it with its loaded comments, redacted in the browser, sent to `/api/v1/imports/capture`.
 4. Then back to Stage 1b (design directions).
 
-Waiting on Mozart:
-- **Apify API token** in `.env` as `APIFY_TOKEN` (account created, username only so far; the token is under Settings, API & Integrations).
-- **5 to 10 Facebook Page URLs**, opened and checked (public, active, Tunisian, health-relevant), saying for each whether it is a health institution (no keyword filter) or a general page.
+Known gap: names written in free text without a tag (a doctor named in a recommendation) are not detected yet. A local named-entity step behind `redact()` would close it.
 
 ## Stage 0 items still open on your side (checked 2026-10-13)
 

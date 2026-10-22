@@ -10,8 +10,9 @@ Known limits, stated so nobody relies on more than this does:
   relative named inside a comment) is not detected. A named-entity model can
   be added later behind the same function.
 - Arabic names glued to a prefix (و, ب, ل) are not matched.
-- Any run of 8 to 12 digits is treated as a phone number, so some dates and
-  amounts written without separators are masked too. Privacy wins.
+- Any run of 8 to 12 digits is treated as a phone number, even glued to a
+  word, so some dates, amounts and product codes written without separators
+  are masked too. Privacy wins.
 
 The output only ever replaces spans; everything else of the original text is
 kept unchanged (derja-handling skill, storage rule 1).
@@ -24,7 +25,7 @@ from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
-REDACTION_VERSION = "r1-2026-10-13"
+REDACTION_VERSION = "r2-2026-10-22"
 
 PLACEHOLDER = {
     "email": "[e-mail]",
@@ -52,7 +53,11 @@ _HANDLE = re.compile(r"(?<![\w@.])@[A-Za-z0-9_](?:[A-Za-z0-9_.]{0,28}[A-Za-z0-9_
 
 # 8 to 12 digits, optionally grouped by spaces, dots or dashes inside a number,
 # with an optional international prefix (+216, 00216).
-_PHONE = re.compile(r"(?<![\w+])(?:(?:\+|00)\d{1,3}[\s.-]?)?(?:\d[\s.-]?){7,11}\d(?!\w)")
+# Only a digit or "+" may not touch the number: a number glued to a word
+# ("مول98765432", "tel98765432") is still a phone. Arabic letters count as \w in
+# Python, so a \w boundary let every number written right after Arabic through
+# (seen in real group posts on 2026-10-22).
+_PHONE = re.compile(r"(?<![\d+])(?:(?:\+|00)\d{1,3}[\s.-]?)?(?:\d[\s.-]?){7,11}\d(?!\d)")
 
 # Eastern Arabic and Persian digits map one to one onto ASCII digits, so spans
 # found on the translated copy line up with the original text.
