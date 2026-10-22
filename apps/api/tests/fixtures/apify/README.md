@@ -2,7 +2,9 @@
 
 **Synthetic.** These files are written by hand to follow the dataset schema that
 `apify/facebook-posts-scraper` (build 0.0.402) and `apify/facebook-comments-scraper`
-(build 0.0.372) publish, checked on 2026-10-13. They are not collected data: the
+(build 0.0.372) publish, checked on 2026-10-13. `group_posts.json` follows the field
+names and types of a real `apify/facebook-groups-scraper` run on 2026-10-22, read
+without keeping any value (only names and types were printed). They are not collected data: the
 page, people, numbers and texts are invented test inputs with `example` domains
 and obviously fake names, so the redaction tests have identifiers to remove.
 

@@ -1,0 +1,57 @@
+[
+  {
+    "facebookUrl": "https://www.facebook.com/groups/groupetestpnsi",
+    "inputUrl": "https://www.facebook.com/groups/groupetestpnsi",
+    "url": "https://www.facebook.com/groups/groupetestpnsi/permalink/800000000000001/",
+    "id": "UzpfSTEwMDAwMDAwMDAwMDAwMTpWSzo4MDAwMDAwMDAwMDAwMDE=",
+    "legacyId": "800000000000001",
+    "facebookId": "100000000000099",
+    "time": "2026-10-12T08:15:00.000Z",
+    "user": {"id": "pfbid0examplefaketestid", "name": "Exemplia Testova", "profilePic": "https://example.com/pic.jpg"},
+    "text": "Merci Rym Fictive pour le conseil. Mon fils a eu de la fièvre après le vaccin ROR, c'est normal ? Exemplia Testova, 98 765 432, exemplia@example.com, https://www.facebook.com/exemplia.testova",
+    "textReferences": [
+      {"id": "100000000000077", "short_name": "Rym Fictive", "url": "https://www.facebook.com/rym.fictive", "profile_url": "https://www.facebook.com/rym.fictive", "mobileUrl": "https://m.facebook.com/rym.fictive", "is_verified": false}
+    ],
+    "collaborators": [],
+    "groupTitle": "Groupe Test PNSI",
+    "likesCount": 12,
+    "commentsCount": 7,
+    "sharesCount": 0,
+    "topReactionsCount": 12
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/groups/groupetestpnsi",
+    "inputUrl": "https://www.facebook.com/groups/groupetestpnsi",
+    "url": "https://www.facebook.com/groups/groupetestpnsi/permalink/800000000000002/",
+    "id": "UzpfSTEwMDAwMDAwMDAwMDAwMjpWSzo4MDAwMDAwMDAwMDAwMDI=",
+    "legacyId": "800000000000002",
+    "time": "2026-10-12T10:40:00.000Z",
+    "user": {"id": "pfbid0examplefaketestid2", "name": "Personne Deux Test"},
+    "text": "Qui vend une voiture d'occasion à Sfax ?",
+    "groupTitle": "Groupe Test PNSI",
+    "likesCount": 3,
+    "commentsCount": 20,
+    "sharesCount": 0
+  },
+  {
+    "facebookUrl": "https://www.facebook.com/groups/groupetestpnsi",
+    "inputUrl": "https://www.facebook.com/groups/groupetestpnsi",
+    "url": "https://www.facebook.com/groups/groupetestpnsi/permalink/800000000000003/",
+    "id": "UzpfSTEwMDAwMDAwMDAwMDAwMzpWSzo4MDAwMDAwMDAwMDAwMDM=",
+    "legacyId": "800000000000003",
+    "time": "2026-10-12T16:05:00.000Z",
+    "user": {"id": "pfbid0examplefaketestid3", "name": "سلمى الاختبار"},
+    "text": "",
+    "sharedPost": {
+      "url": "https://www.facebook.com/example.shared/posts/1",
+      "time": "2026-10-11T09:00:00.000Z",
+      "user": {"id": "100000000000055", "name": "Partageur Fictif", "profileUrl": "https://www.facebook.com/partageur.fictif"},
+      "text": "Partageur Fictif dit que le vaccin contre la grippe provoque la grippe."
+    },
+    "groupTitle": "Groupe Test PNSI",
+    "likesCount": 1,
+    "commentsCount": 0,
+    "sharesCount": 4,
+    "videoPostViewCount": 150
+  }
+]

@@ -191,6 +191,53 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "FacebookGroupCreate": {
+        "properties": {
+          "checked_note": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Checked Note",
+            "type": "string"
+          },
+          "health_filter": {
+            "default": true,
+            "title": "Health Filter",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          },
+          "posts_per_run": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posts Per Run"
+          },
+          "url": {
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "name",
+          "checked_note"
+        ],
+        "title": "FacebookGroupCreate",
+        "type": "object"
+      },
       "FacebookPageCreate": {
         "properties": {
           "checked_note": {
@@ -1005,6 +1052,17 @@
             "title": "Enabled",
             "type": "boolean"
           },
+          "group_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Url"
+          },
           "health_filter": {
             "anyOf": [
               {
@@ -1152,6 +1210,7 @@
           "connector",
           "integration_state",
           "page_url",
+          "group_url",
           "health_filter",
           "posts_per_run",
           "comments_per_post",
@@ -2263,6 +2322,107 @@
           }
         },
         "summary": "List Sources",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/facebook-groups": {
+      "post": {
+        "operationId": "add_facebook_group",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FacebookGroupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Add Facebook Group",
         "tags": [
           "sources"
         ]

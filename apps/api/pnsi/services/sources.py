@@ -1,4 +1,5 @@
-"""Source registry: the Facebook watch-list, enabling sources and requesting runs."""
+"""Source registry: the Facebook watch-list (Pages and public groups), enabling sources and
+requesting runs."""
 
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ from pnsi.auth.principal import Principal
 from pnsi.authz.permissions import Permission
 from pnsi.authz.service import ensure_can, ensure_permission
 from pnsi.collection import service as collection
-from pnsi.connectors.facebook_apify import DEFAULTS, FacebookPagesApify, normalize_page_url
+from pnsi.connectors.facebook_apify import FacebookGroupsApify, FacebookPagesApify
 from pnsi.enums import RunTrigger, SourceKind
 from pnsi.errors import ApiError, Conflict, FieldError, NotFound
 from pnsi.models import CollectionRun, Source
@@ -75,26 +76,83 @@ def add_facebook_page(
     comments_per_post: int | None = None,
 ) -> Source:
     """Add a hand-checked public Page to the watch-list (sources-plan section 2)."""
+    return _add_facebook_source(
+        db,
+        principal,
+        FacebookPagesApify,
+        url=url,
+        name=name,
+        health_filter=health_filter,
+        checked_note=checked_note,
+        posts_per_run=posts_per_run,
+        comments_per_post=comments_per_post,
+    )
+
+
+def add_facebook_group(
+    db: Session,
+    principal: Principal,
+    *,
+    url: str,
+    name: str,
+    health_filter: bool,
+    checked_note: str,
+    posts_per_run: int | None = None,
+) -> Source:
+    """Add a hand-checked public group to the watch-list (decision D18). Posts only."""
+    return _add_facebook_source(
+        db,
+        principal,
+        FacebookGroupsApify,
+        url=url,
+        name=name,
+        health_filter=health_filter,
+        checked_note=checked_note,
+        posts_per_run=posts_per_run,
+        comments_per_post=0,
+    )
+
+
+def _add_facebook_source(
+    db: Session,
+    principal: Principal,
+    connector: type[FacebookPagesApify | FacebookGroupsApify],
+    *,
+    url: str,
+    name: str,
+    health_filter: bool,
+    checked_note: str,
+    posts_per_run: int | None,
+    comments_per_post: int | None,
+) -> Source:
     ensure_permission(principal, Permission.SOURCES_MANAGE)
+    is_group = connector is FacebookGroupsApify
     try:
-        page_url = normalize_page_url(url)
+        source_url = connector.normalize(url)
     except ValueError as exc:
         raise ApiError(
-            "Adresse de Page invalide.",
-            code="invalid_page_url",
+            "Adresse de groupe invalide." if is_group else "Adresse de Page invalide.",
+            code="invalid_group_url" if is_group else "invalid_page_url",
             field_errors=[FieldError(field="url", message=str(exc))],
         ) from None
-    key = f"facebook:{_slug(page_url)}"
+    key = f"facebook:{_slug(source_url)}"
     if db.scalar(select(Source.id).where(Source.key == key)):
-        raise Conflict("Cette Page est déjà dans la liste de veille.", code="source_exists")
+        raise Conflict(
+            "Ce groupe est déjà dans la liste de veille."
+            if is_group
+            else "Cette Page est déjà dans la liste de veille.",
+            code="source_exists",
+        )
 
     config: dict[str, Any] = {
-        "connector": FacebookPagesApify.key,
-        "page_url": page_url,
+        "connector": connector.key,
+        connector.url_field: source_url,
         "health_filter": health_filter,
-        "posts_per_run": posts_per_run or DEFAULTS["posts_per_run"],
+        "posts_per_run": posts_per_run or connector.defaults["posts_per_run"],
         "comments_per_post": (
-            DEFAULTS["comments_per_post"] if comments_per_post is None else comments_per_post
+            connector.defaults["comments_per_post"]
+            if comments_per_post is None
+            else comments_per_post
         ),
         "checked_by": str(principal.user_id),
         "checked_note": checked_note.strip(),
@@ -104,8 +162,8 @@ def add_facebook_page(
         key=key,
         name=name.strip(),
         kind=SourceKind.SCRAPER,
-        route=FacebookPagesApify.route,
-        basis=FacebookPagesApify.basis,
+        route=connector.route,
+        basis=connector.basis,
         enabled=True,
         schedule="every:12h",
         config=config,
@@ -119,7 +177,7 @@ def add_facebook_page(
         object_type="source",
         object_id=source.id,
         changes={"key": {"from": None, "to": key}, "name": {"from": None, "to": source.name}},
-        context={"page_url": page_url, "checked_note": config["checked_note"]},
+        context={connector.url_field: source_url, "checked_note": config["checked_note"]},
     )
     return source
 
@@ -138,6 +196,14 @@ def update_source(
     source = get_source(db, principal, source_id, Permission.SOURCES_MANAGE)
     if source.version != expected_version:
         raise Conflict("La source a été modifiée entre-temps. Rechargez la page.")
+    if comments_per_post and source.config.get("connector") == FacebookGroupsApify.key:
+        raise ApiError(
+            "Les commentaires des groupes ne sont pas accessibles sans connexion.",
+            code="comments_unavailable",
+            field_errors=[
+                FieldError(field="comments_per_post", message="0 pour un groupe (décision D18)")
+            ],
+        )
     before = {"enabled": source.enabled, **source.config}
     config = dict(source.config)
     for field, value in (

@@ -122,8 +122,25 @@ Decisions that shape the product. Newest at the bottom. Each entry: date, decisi
 
 **Decision.** At Mozart's request (Facebook data needed within two days), the Apify Facebook collector and then the PNSI Capture extension are built before Stage 1b. Each hand-checked public Page is one source (`facebook:<page>`, route `public_contested`, schedule every 12 hours, manual runs by the administrator). Posts are fetched with `apify/facebook-posts-scraper`; comments with `apify/facebook-comments-scraper`, one run per post, only for posts that pass the health keyword filter (off for health institutions' Pages). Nothing is stored before redaction; commenters' names, handles, phones, e-mails and profile links are removed, and the Page's own replies keep the Page name.
 
-**Budget.** Prices on the free plan (checked 2026-10-13): 0.005 USD per post, 0.0025 USD per comment, 0.001 USD per actor start. With the 5 USD monthly cap (`APIFY_MAX_SPEND_USD`), that is about 90 health posts with 20 comments each per month. Every run passes `maxTotalChargeUsd` computed from the remaining budget, so Apify refuses to charge beyond it; when the budget is spent, runs fail with "Budget Apify du mois épuisé".
+**Budget.** Prices on the free plan (checked 2026-10-13): 0.005 USD per post, 0.0025 USD per comment, 0.001 USD per actor start. Corrected 2026-10-22 (D18): each post also costs 0.002 USD when a date filter is set, which we always do, so 0.007 USD per post. With the 5 USD monthly cap (`APIFY_MAX_SPEND_USD`), that is about 70 health posts with 20 comments each per month. Every run passes `maxTotalChargeUsd` computed from the remaining budget, so Apify refuses to charge beyond it; when the budget is spent, runs fail with "Budget Apify du mois épuisé".
 
 **Limits.** The keyword list is a draft for native review. Name redaction covers names the collector sees as authors; other names in free text are not detected yet.
 
 **Alternatives.** Our own logged-out collector (later, if Apify costs grow). Waiting for Meta App Review (weeks).
+
+## D18 · Public Facebook groups, posts only (2026-10-22)
+
+**Decision.** At Mozart's request, public Facebook groups join the watch-list beside Pages, through `apify/facebook-groups-scraper` (route `public_contested`, connector `facebook_groups_apify`, endpoint `POST /api/v1/sources/facebook-groups`). The list lives in `docs/sources/facebook-watchlist.yaml` and is loaded with `make watchlist`; `make collect` runs it by hand.
+
+**Privacy.** Group posts are written by private individuals, so every group post is stored as `individual`: the author's name, tagged people (`textReferences`), collaborators and the author of a shared post are handed to redaction, and no post URL is kept (only the group URL, on the source). The integration test `test_group_posts_store_no_personal_identifier_and_no_post_link` proves none of them reaches the database. General groups keep only posts that match the health keywords.
+
+**Comments.** Not collected for groups: on 2026-10-22 the comments actor answered "Empty or private data" for a public group post logged out. The connector never requests them and the API refuses `comments_per_post` above 0 for a group.
+
+**Checked on 2026-10-22 with a real run.** 7 of Mozart's 8 groups returned posts; one returned nothing (private or empty) and one (Radio Amal FM) has not posted since 2013. Both are listed as excluded.
+
+**Budget.** Same prices as Pages (0.005 USD per post plus 0.002 for the date filter). The budget guard now charges a run at least the price of the items it returned, because Apify reports 0 USD on a just-finished pay-per-event run (seen 2026-10-22). With 8 Pages and 6 groups at 10 posts per run, a busy day costs about 1 USD, so the free 5 USD lasts about a week of daily collection. Sources are therefore loaded with schedule `manual`: nothing runs on its own until Mozart chooses a budget.
+
+**Limits.** Names that appear in free text without being tagged (for example a doctor named in a recommendation group) are not detected yet; the same limit as D17, more frequent in groups. One group (J'ai testé un médecin en Tunisie) is sensitive because members describe their own health; its health filter is on and PNSI never infers a person's health status.
+
+**Alternatives.** Groups only through the Capture extension (route `assisted`, slower). Not collecting groups (rejected by Mozart).
+

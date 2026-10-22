@@ -8,6 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 
 from pnsi.api.v1.collection_schemas import (
+    FacebookGroupCreate,
     FacebookPageCreate,
     RunOut,
     SourceOut,
@@ -57,6 +58,27 @@ def add_facebook_page(
         checked_note=body.checked_note,
         posts_per_run=body.posts_per_run,
         comments_per_post=body.comments_per_post,
+    )
+    return _out(db, source, settings)
+
+
+@router.post(
+    "/sources/facebook-groups",
+    response_model=SourceOut,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="add_facebook_group",
+)
+def add_facebook_group(
+    body: FacebookGroupCreate, principal: SourceManager, db: DbSession, settings: SettingsDep
+) -> SourceOut:
+    source = source_service.add_facebook_group(
+        db,
+        principal,
+        url=body.url,
+        name=body.name,
+        health_filter=body.health_filter,
+        checked_note=body.checked_note,
+        posts_per_run=body.posts_per_run,
     )
     return _out(db, source, settings)
 

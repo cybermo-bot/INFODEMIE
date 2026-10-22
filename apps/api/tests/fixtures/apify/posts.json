@@ -37,7 +37,7 @@
     "shares": 2
   },
   {
-    "error": "no_items",
+    "error": "parse_failed",
     "errorDescription": "Synthetic error row to exercise partial errors."
   }
 ]

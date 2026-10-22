@@ -10,7 +10,8 @@ import pytest
 from sqlalchemy import select, text
 
 from pnsi.collection import service as collection
-from pnsi.connectors.facebook_apify import FacebookPagesApify
+from pnsi.collection.registry import CONNECTORS
+from pnsi.connectors.facebook_apify import FacebookGroupsApify, FacebookPagesApify
 from pnsi.enums import CollectionRoute, Role, RunStatus, RunTrigger
 from pnsi.models import AuditEvent, CollectionRun, ContentItem, Source
 from pnsi.settings import Settings
@@ -18,6 +19,19 @@ from tests.apify_fake import FakeApify
 from tests.integration.conftest import csrf_headers, login
 
 # Every identifier planted in the synthetic fixtures.
+GROUP_PLANTED = [
+    "Exemplia",
+    "Testova",
+    "Rym Fictive",
+    "Partageur Fictif",
+    "rym.fictive",
+    "exemplia.testova",
+    "98 765 432",
+    "exemplia@example.com",
+    "pfbid0example",
+    "800000000000001",
+    "permalink",
+]
 PLANTED = [
     "Exemplia",
     "Testova",
@@ -60,10 +74,11 @@ def page(db, seeded) -> Source:
 def run_with(db, source: Source, fake: FakeApify | None, token: str | None = "fake"):
     settings = Settings(apify_token=token, apify_max_spend_usd=5)
 
-    def factory(_source, s):
+    def factory(source_, s):
+        cls = CONNECTORS[source_.config["connector"]]
         if fake is None:
-            return FacebookPagesApify(s)
-        return FacebookPagesApify(s, client_factory=fake.client)
+            return cls(s)
+        return cls(s, client_factory=fake.client)
 
     run = collection.create_run(db, source, RunTrigger.MANUAL)
     db.commit()
@@ -220,3 +235,82 @@ def test_collection_run_rows_have_no_raw_payload(db, page):
     run_with(db, page, FakeApify())
     run = db.scalar(select(CollectionRun))
     assert "Exemplia" not in str(run.coverage) and "Exemplia" not in str(run.error)
+
+
+# Public groups (decision D18)
+
+
+@pytest.fixture
+def group(db, seeded) -> Source:
+    from pnsi.models import Institution
+
+    institution = db.scalar(select(Institution).where(Institution.code == "ONMNE"))
+    source = Source(
+        institution_id=institution.id,
+        key="facebook:groups-groupetestpnsi",
+        name="Groupe Test PNSI",
+        kind="scraper",
+        route=CollectionRoute.PUBLIC_CONTESTED,
+        basis=FacebookGroupsApify.basis,
+        enabled=True,
+        schedule="every:12h",
+        config={
+            "connector": FacebookGroupsApify.key,
+            "group_url": "https://www.facebook.com/groups/groupetestpnsi",
+            "health_filter": True,
+            "comments_per_post": 0,
+        },
+    )
+    db.add(source)
+    db.commit()
+    return source
+
+
+def test_group_posts_store_no_personal_identifier_and_no_post_link(db, group):
+    run = run_with(db, group, FakeApify())
+    assert run.status is RunStatus.SUCCEEDED, run.error
+    items = db.scalars(select(ContentItem)).all()
+    assert len(items) == 2
+    for item in items:
+        assert item.author_kind.value == "individual"
+        assert item.canonical_url is None and item.author_org_name is None
+        assert item.route is CollectionRoute.PUBLIC_CONTESTED and item.run_id == run.id
+    stored = all_stored_text(db)
+    for value in GROUP_PLANTED:
+        assert value not in stored, f"{value!r} reached the database"
+    texts = " ".join(i.original_text for i in items)
+    assert "[nom]" in texts and "vaccin ROR" in texts and "grippe" in texts
+    assert run.coverage["comments"].startswith("non accessibles")
+
+
+def test_admin_adds_group_without_comments(seeded, make_client, db):
+    admin = make_client()
+    login(admin, Role.ADMINISTRATEUR, seeded["administrateur"])
+    body = {
+        "url": "https://www.facebook.com/groups/a5bar.tounes?locale=fr_FR",
+        "name": "A5bar Tounes",
+        "checked_note": "Groupe public vérifié le 22/10/2026 par un essai Apify.",
+    }
+    res = admin.post("/api/v1/sources/facebook-groups", json=body, headers=csrf_headers(admin))
+    assert res.status_code == 201, res.text
+    out = res.json()
+    assert out["group_url"] == "https://www.facebook.com/groups/a5bar.tounes"
+    assert out["page_url"] is None
+    assert out["connector"] == "facebook_groups_apify"
+    assert out["comments_per_post"] == 0 and out["health_filter"] is True
+
+    patch = admin.patch(
+        f"/api/v1/sources/{out['id']}",
+        json={"expected_version": out["version"], "comments_per_post": 10},
+        headers=csrf_headers(admin),
+    )
+    assert patch.status_code == 400, patch.text
+
+    page_url = {**body, "url": "https://www.facebook.com/mosaiquefm"}
+    bad = admin.post("/api/v1/sources/facebook-groups", json=page_url, headers=csrf_headers(admin))
+    assert bad.status_code == 400
+
+    analyst = make_client()
+    login(analyst, Role.ANALYSTE, seeded["analyste"])
+    res = analyst.post("/api/v1/sources/facebook-groups", json=body, headers=csrf_headers(analyst))
+    assert res.status_code == 403

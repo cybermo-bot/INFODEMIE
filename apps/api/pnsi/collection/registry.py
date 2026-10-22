@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from pnsi.connectors.base import Connector, NotConfigured
-from pnsi.connectors.facebook_apify import FacebookPagesApify
+from pnsi.connectors.facebook_apify import FacebookGroupsApify, FacebookPagesApify
 from pnsi.models import Source
 from pnsi.settings import Settings
 
-CONNECTORS = {FacebookPagesApify.key: FacebookPagesApify}
+CONNECTORS = {c.key: c for c in (FacebookPagesApify, FacebookGroupsApify)}
 
 
 def connector_for(source: Source, settings: Settings) -> Connector:

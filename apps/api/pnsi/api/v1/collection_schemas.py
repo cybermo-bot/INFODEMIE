@@ -45,6 +45,7 @@ class SourceOut(BaseModel):
     # State of the key the connector needs: "configure" or "non_configure".
     integration_state: IntegrationState | None
     page_url: str | None
+    group_url: str | None
     health_filter: bool | None
     posts_per_run: int | None
     comments_per_post: int | None
@@ -62,7 +63,9 @@ class SourceOut(BaseModel):
     ) -> SourceOut:
         cfg = source.config or {}
         connector = cfg.get("connector")
-        integration = "apify" if connector == "facebook_pages_apify" else None
+        integration = (
+            "apify" if connector in {"facebook_pages_apify", "facebook_groups_apify"} else None
+        )
         return cls(
             id=source.id,
             key=source.key,
@@ -75,6 +78,7 @@ class SourceOut(BaseModel):
             connector=connector,
             integration_state=integrations.get(integration) if integration else None,
             page_url=cfg.get("page_url"),
+            group_url=cfg.get("group_url"),
             health_filter=cfg.get("health_filter"),
             posts_per_run=cfg.get("posts_per_run"),
             comments_per_post=cfg.get("comments_per_post"),
@@ -97,6 +101,16 @@ class FacebookPageCreate(BaseModel):
     checked_note: str = Field(min_length=10, max_length=1000)
     posts_per_run: int | None = Field(default=None, ge=1, le=50)
     comments_per_post: int | None = Field(default=None, ge=0, le=200)
+
+
+class FacebookGroupCreate(BaseModel):
+    url: str = Field(min_length=10, max_length=500)
+    name: str = Field(min_length=2, max_length=255)
+    # Groups are general by default: only health posts are kept.
+    health_filter: bool = True
+    # Who checked the group and what they saw: public, active, Tunisian, relevant.
+    checked_note: str = Field(min_length=10, max_length=1000)
+    posts_per_run: int | None = Field(default=None, ge=1, le=50)
 
 
 class SourcePatch(BaseModel):

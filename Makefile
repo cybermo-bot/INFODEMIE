@@ -9,7 +9,7 @@ UV := uv --directory $(API)
 
 .DEFAULT_GOAL := help
 .PHONY: help install services services-down dev api worker web test test-api test-api-db test-web e2e \
-        lint fmt migrate migration-check seed eval api-client
+        lint fmt migrate migration-check seed watchlist collect eval api-client
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -69,6 +69,12 @@ migration-check:  ## Check that the models and migrations agree (needs Postgres)
 
 seed:  ## Seed ONMNE and one user per role; passwords go to data/seed-credentials.txt
 	$(UV) run python -m pnsi.cli.seed
+
+watchlist:  ## Add missing Facebook Pages and groups from docs/sources/facebook-watchlist.yaml
+	$(UV) run python -m pnsi.cli.watchlist load
+
+collect:  ## Collect every Facebook source now, uses Apify credit (ONLY=text to pick sources)
+	$(UV) run python -m pnsi.cli.watchlist collect $(if $(ONLY),--only "$(ONLY)")
 
 eval:  ## Run the verification test set (Stage 4)
 	@echo "make eval is not implemented yet: it arrives with the verification engine in Stage 4." >&2; exit 2

@@ -53,7 +53,7 @@ Everything below must be verified when implemented: endpoints, quotas and terms 
 | A · Graph API on managed Pages (`official`) | Page access token for Pages administered by the ministry, ONMNE or a regional directorate; read posts and all comments | Ready to activate when a token is provided (deferred request to ONMNE) |
 | B · Page Public Content Access (`official`) | Meta App Review for reading public content of Pages we do not manage | Apply after the Meta app exists; takes weeks |
 | C · Monitoring accounts + PNSI Capture (`assisted`) | Real, identifiable accounts operated by analysts; the extension records the post and loaded comments on click, redacted in the browser | Build in stage 3 |
-| D · Logged-out watch-list (`public_contested`) | Apify actors for public Pages, posts and comments within the free credit, or our own logged-out collector; polite rate, small curated list | Build in stage 3 |
+| D · Logged-out watch-list (`public_contested`) | Apify actors for public Pages (posts and comments) and public groups (posts only, decision D18) within the free credit, or our own logged-out collector; polite rate, small curated list in `docs/sources/facebook-watchlist.yaml` | Built (D17, D18) |
 | E · Unattended logged-in bots | Not built (decision D4) | No |
 
 ### Instagram

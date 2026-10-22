@@ -26,6 +26,24 @@ MIN_RUN_BUDGET_USD = 0.02
 log = get_logger(__name__)
 
 
+def run_cost_usd(run: dict[str, Any]) -> float:
+    """What a finished run cost, as far as the run object says.
+
+    For pay-per-event actors, `usageTotalUsd` is often still 0 when the run turns
+    SUCCEEDED (seen on 2026-10-22: 0.0 reported, 0.041 billed a minute later), so
+    the charged events times their price are used when they say more. Callers add
+    their own floor from the number of items received.
+    """
+    reported = float(run.get("usageTotalUsd") or 0)
+    events = (run.get("pricingInfo") or {}).get("pricingPerEvent", {}).get("actorChargeEvents")
+    from_events = 0.0
+    for name, count in (run.get("chargedEventCounts") or {}).items():
+        price = ((events or {}).get(name) or {}).get("eventPriceUsd")
+        if isinstance(price, int | float) and isinstance(count, int | float):
+            from_events += price * count
+    return round(max(reported, from_events), 6)
+
+
 @dataclass
 class ActorResult:
     run_id: str
@@ -145,7 +163,7 @@ class ApifyClient:
             ]
 
         status = run["status"]
-        cost = float(run.get("usageTotalUsd") or 0)
+        cost = run_cost_usd(run)
         log.info("apify_run_finished", actor=actor_id, status=status, cost_usd=cost)
         if status == "FAILED":
             raise ConnectorError(f"La course Apify a échoué ({actor_id}).")

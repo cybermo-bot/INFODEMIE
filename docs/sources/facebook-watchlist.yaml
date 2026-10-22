@@ -1,63 +1,103 @@
-# Facebook watch-list supplied by Mozart on 2026-10-22 (was URLS.txt in the old
-# Windows starter folder). Pages are added through POST /api/v1/sources/facebook-pages
-# or the Sources screen. The collector accepts Pages only; groups are listed here
-# for the record and are not collected (see the note on groups below).
+# Facebook watch-list supplied by Mozart (first list 2026-10-22, was URLS.txt in the
+# old Windows starter folder; ONMNE, Nessma and Wataniya added the same day).
 #
-# health_filter: true  = general page, comments collected only for posts that
-#                        match the health keyword list
-# health_filter: false = health institution, every post and its comments
+# Load it into the database with `make watchlist` (adds what is missing, never
+# changes or removes existing sources). Collect with `make collect`.
+#
+# health_filter: true  = general source, only posts matching the health keyword
+#                        list are kept (and, for Pages, get their comments)
+# health_filter: false = health source, every post is kept
+#
+# schedule: "manual" means nothing runs on its own; "every:24h" lets the
+# scheduler run it. Manual by default while the Apify budget is the free 5 USD a
+# month (decision D18).
+
+schedule: manual
 
 pages:
   - url: https://www.facebook.com/santetunisie.rns.tn
     name: Ministère de la Santé (page officielle)
-    kind: health_institution
     health_filter: false
-    note: "Mozart: page officielle du ministère de la Santé."
+    note: "Mozart : page officielle du ministère de la Santé."
+
+  - url: https://www.facebook.com/ONMNE
+    name: ONMNE
+    health_filter: false
+    note: "Mozart : page de l'Observatoire national des maladies nouvelles et émergentes."
 
   - url: https://www.facebook.com/mosaiquefm
     name: Mosaïque FM
-    kind: general
     health_filter: true
-    note: "Mozart: radio connue qui publie aussi sur la santé."
+    note: "Mozart : radio connue qui publie aussi sur la santé."
 
   - url: https://www.facebook.com/DiwanFM
     name: Diwan FM
-    kind: general
     health_filter: true
-    note: "Mozart: radio connue qui publie aussi sur la santé."
+    note: "Mozart : radio connue qui publie aussi sur la santé."
 
   - url: https://www.facebook.com/RadioShamsFm
     name: Shems FM
-    kind: general
     health_filter: true
-    note: "Mozart: radio connue qui publie aussi sur la santé."
+    note: "Mozart : radio connue qui publie aussi sur la santé."
 
   - url: https://www.facebook.com/Radio.JawharaFM
     name: Jawhara FM
-    kind: general
     health_filter: true
-    note: "Mozart: radio connue qui publie aussi sur la santé."
+    note: "Mozart : radio connue qui publie aussi sur la santé."
 
-# Groups: not collected. The Apify collector and our URL check accept Pages only.
-# Group posts come from private individuals, so collecting them needs its own
-# decision in docs/decisions.md (legal basis, public groups only, probably through
-# the Capture extension rather than unattended collection).
+  - url: https://www.facebook.com/NessmaTV
+    name: Nessma TV
+    health_filter: true
+    note: "Mozart : chaîne de télévision nationale."
+
+  - url: https://www.facebook.com/wataniya.tv
+    name: Télévision nationale (Wataniya)
+    health_filter: true
+    note: "Mozart : télévision publique."
+
+# Public groups (decision D18): posts only, comments are not reachable logged out.
+# Authors are private individuals: names, tagged people and links are removed
+# before storage and no post link is kept. Names and activity checked through a
+# real Apify run on 2026-10-22 (latest post date in brackets).
 groups:
-  - url: https://www.facebook.com/groups/121472527925795
-    note: "Listed by Mozart with the radios. Name not checked."
-  - url: https://www.facebook.com/groups/jaitesteunmedecinatunisjerecommande
-    note: >-
-      Patients recommending doctors. Sensitive: members describe their own
-      health, and PNSI must not infer a person's health status.
-  - url: https://www.facebook.com/groups/312857119816472
-    note: "Name not checked."
-  - url: https://www.facebook.com/groups/415351210395531
-    note: "Name not checked."
-  - url: https://www.facebook.com/groups/a5bar.tounes
-    note: "News group (a5bar tounes)."
-  - url: https://www.facebook.com/groups/350426186955193
-    note: "Name not checked."
   - url: https://www.facebook.com/groups/1742669792684286
-    note: "Name not checked."
+    name: Amis du ministère de la Santé publique
+    health_filter: false
+    note: "Groupe public, actif (21/10/2026)."
+
+  - url: https://www.facebook.com/groups/312857119816472
+    name: Consultation médicale Tunisie (استشارة طبية تونس)
+    health_filter: false
+    note: "Groupe public, actif (21/10/2026). Questions de santé posées par le public."
+
   - url: https://www.facebook.com/groups/2799823250374199
-    note: "Name not checked."
+    name: Régime Tayibat, branche Tunisie (نظام الطيبات)
+    health_filter: false
+    note: >-
+      Groupe public, actif (21/10/2026). Régime promu par Dia Al-Awadi, source
+      connue d'allégations de santé contestées.
+
+  - url: https://www.facebook.com/groups/jaitesteunmedecinatunisjerecommande
+    name: J'ai testé un médecin en Tunisie
+    health_filter: true
+    note: >-
+      Groupe public, actif (21/10/2026). Sensible : les membres décrivent leur
+      propre santé et nomment des médecins. Filtre santé actif pour ne garder que
+      les publications utiles à la veille.
+
+  - url: https://www.facebook.com/groups/415351210395531
+    name: Actualités Tunisie 24/24 (أخبار تونس لحظة بلحظة)
+    health_filter: true
+    note: "Groupe public d'actualités, actif (21/10/2026)."
+
+  - url: https://www.facebook.com/groups/a5bar.tounes
+    name: Réseau Akhbar Tounes (شبكة أخبار تونس)
+    health_filter: true
+    note: "Groupe public d'actualités, actif (19/10/2026)."
+
+# Not collected.
+excluded:
+  - url: https://www.facebook.com/groups/121472527925795
+    reason: "Radio Amal FM : groupe inactif, dernière publication en 2013."
+  - url: https://www.facebook.com/groups/350426186955193
+    reason: "Aucune publication renvoyée le 22/10/2026 : groupe privé ou vide."

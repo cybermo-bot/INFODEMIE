@@ -25,14 +25,19 @@ class FakeApify:
         account_max_usd: float | None = 5.0,
         posts: list[dict[str, Any]] | None = None,
         comments: list[dict[str, Any]] | None = None,
+        group_posts: list[dict[str, Any]] | None = None,
         post_run_cost: float = 0.016,
         comment_run_cost: float = 0.011,
         status_code: int = 200,
+        # False reproduces Apify reporting 0 USD on a just-finished pay-per-event run.
+        report_cost: bool = True,
     ) -> None:
         self.used_usd = used_usd
         self.account_max_usd = account_max_usd
         self.posts = load("posts.json") if posts is None else posts
         self.comments = load("comments.json") if comments is None else comments
+        self.group_posts = load("group_posts.json") if group_posts is None else group_posts
+        self.report_cost = report_cost
         self.post_run_cost = post_run_cost
         self.comment_run_cost = comment_run_cost
         self.status_code = status_code
@@ -63,6 +68,9 @@ class FakeApify:
             if actor.endswith("posts-scraper"):
                 self._datasets[dataset] = self.posts
                 cost = self.post_run_cost
+            elif actor.endswith("groups-scraper"):
+                self._datasets[dataset] = self.group_posts
+                cost = self.post_run_cost
             else:
                 url = body["startUrls"][0]["url"]
                 self._datasets[dataset] = [c for c in self.comments if c["facebookUrl"] == url]
@@ -81,7 +89,7 @@ class FakeApify:
                         "id": f"run-{n}",
                         "status": "SUCCEEDED",
                         "defaultDatasetId": dataset,
-                        "usageTotalUsd": cost,
+                        "usageTotalUsd": cost if self.report_cost else 0.0,
                     }
                 },
             )

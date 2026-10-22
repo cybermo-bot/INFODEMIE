@@ -45,6 +45,8 @@ make api | worker | web   # run one process alone
 make migrate         # alembic upgrade head
 make migration-check # alembic check: models and migrations agree (needs Postgres)
 make seed            # ONMNE + one account per role; passwords in data/seed-credentials.txt
+make watchlist       # add missing Facebook Pages and groups from docs/sources/facebook-watchlist.yaml
+make collect         # collect every Facebook source now (uses Apify credit; ONLY=text picks sources)
 make test            # backend tests (DB tests skip if Postgres is down) and web unit tests
 make test-api-db     # backend integration tests only; fail if Postgres is down
 make e2e             # Playwright browser tests (needs make dev and make seed)

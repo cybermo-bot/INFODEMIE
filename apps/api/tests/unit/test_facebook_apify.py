@@ -1,15 +1,18 @@
-"""Facebook Pages through Apify: parsing, health filter, budget guard. No network."""
+"""Facebook Pages and public groups through Apify: parsing, filter, budget guard. No network."""
 
 from __future__ import annotations
 
 import pytest
 
-from pnsi.connectors.apify import ApifyClient, Budget
+from pnsi.connectors.apify import ApifyClient, Budget, run_cost_usd
 from pnsi.connectors.base import BudgetExhausted, ConfigStatus, NotConfigured
 from pnsi.connectors.facebook_apify import (
     COMMENTS_ACTOR,
+    GROUPS_ACTOR,
     POSTS_ACTOR,
+    FacebookGroupsApify,
     FacebookPagesApify,
+    normalize_group_url,
     normalize_page_url,
 )
 from pnsi.enums import AuthorKind, SourceKind
@@ -161,3 +164,122 @@ def test_budget_cap_arithmetic():
     budget.charge(0.04)
     with pytest.raises(BudgetExhausted):
         budget.cap(0.2)
+
+
+def test_unreported_cost_is_charged_from_items_received():
+    # Apify said 0 USD; three posts at 0.007 plus the start must still count.
+    fake = FakeApify(report_cost=False)
+    batch = connector(fake).fetch(make_source(comments_per_post=0), None)
+    assert batch.coverage["cost_usd"] == pytest.approx(0.001 + 3 * 0.007)
+
+
+def test_run_cost_reads_charged_events_when_usage_is_late():
+    run = {
+        "usageTotalUsd": 0.0,
+        "chargedEventCounts": {"post": 7, "actor-start": 1, "filter-applied": 7},
+        "pricingInfo": {
+            "pricingPerEvent": {
+                "actorChargeEvents": {
+                    "post": {"eventPriceUsd": 0.005},
+                    "actor-start": {"eventPriceUsd": 0.001},
+                    "filter-applied": {"eventPriceUsd": 0.002},
+                }
+            }
+        },
+    }
+    assert run_cost_usd(run) == pytest.approx(0.05)
+    assert run_cost_usd({"usageTotalUsd": 0.2}) == 0.2
+
+
+def test_empty_window_is_coverage_not_an_error():
+    fake = FakeApify(posts=[{"error": "no_items", "errorDescription": "Empty or private data"}])
+    batch = connector(fake).fetch(make_source(), None)
+    assert batch.items == []
+    assert batch.partial_errors == []
+    assert batch.coverage["no_items"] is True
+
+
+# Public groups (decision D18)
+
+
+def make_group(**config) -> Source:
+    return Source(
+        key="facebook:groups-groupetestpnsi",
+        name="Groupe Test PNSI",
+        kind=SourceKind.SCRAPER,
+        route=FacebookGroupsApify.route,
+        basis=FacebookGroupsApify.basis,
+        config={
+            "connector": FacebookGroupsApify.key,
+            "group_url": "https://www.facebook.com/groups/groupetestpnsi",
+            **config,
+        },
+    )
+
+
+def group_connector(fake: FakeApify) -> FacebookGroupsApify:
+    settings = Settings(apify_token="fake", apify_max_spend_usd=5.0)
+    return FacebookGroupsApify(settings, client_factory=fake.client)
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        (
+            "https://www.facebook.com/groups/a5bar.tounes?locale=fr_FR",
+            "https://www.facebook.com/groups/a5bar.tounes",
+        ),
+        (
+            "m.facebook.com/groups/121472527925795/",
+            "https://www.facebook.com/groups/121472527925795",
+        ),
+    ],
+)
+def test_group_url_normalised(url, expected):
+    assert normalize_group_url(url) == expected
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.facebook.com/mosaiquefm",
+        "https://www.facebook.com/groups/",
+        "https://www.facebook.com/groups/123/permalink/456",
+    ],
+)
+def test_non_group_urls_rejected(url):
+    with pytest.raises(ValueError):
+        normalize_group_url(url)
+
+
+def test_group_posts_are_individuals_with_names_handed_to_redaction():
+    fake = FakeApify()
+    batch = group_connector(fake).fetch(make_group(), None)
+
+    assert [r["actor"] for r in fake.runs] == [GROUPS_ACTOR]
+    assert fake.runs[0]["input"]["viewOption"] == "CHRONOLOGICAL"
+    by_id = {i.external_id: i for i in batch.items}
+    # The car sale is filtered out; the vaccine question and the shared rumour stay.
+    assert set(by_id) == {
+        "facebook:group-post:800000000000001",
+        "facebook:group-post:800000000000003",
+    }
+    assert batch.coverage["posts_filtered_out"] == 1
+    for item in batch.items:
+        assert item.author_kind is AuthorKind.INDIVIDUAL
+        assert item.author_org_name is None
+        # No link back to a post written by a private person.
+        assert item.canonical_url is None
+    first = by_id["facebook:group-post:800000000000001"]
+    assert {"Exemplia Testova", "Rym Fictive"} <= set(first.known_names)
+    shared = by_id["facebook:group-post:800000000000003"]
+    assert "grippe" in shared.raw_text
+    assert "Partageur Fictif" in shared.known_names
+    assert first.metrics["comments"] == 7
+
+
+def test_group_comments_are_never_requested():
+    # Group posts have comments, but logged-out access returns nothing for them.
+    fake = FakeApify()
+    group_connector(fake).fetch(make_group(comments_per_post=20), None)
+    assert COMMENTS_ACTOR not in [r["actor"] for r in fake.runs]
